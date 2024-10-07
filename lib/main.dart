@@ -3,7 +3,6 @@
 import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sys/screens/exibir.dart';
 import 'package:sys/screens/formulario.dart';
 import 'package:sys/screens/pag_inicial.dart';
 //import 'package:sys/screens/login.dart';
@@ -27,7 +26,7 @@ class MyApp extends StatelessWidget {
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 16, 2, 147)),
         ),
-        home: PagInicial(),
+        home: MyHomePage(),
       ),
     );
   }
@@ -101,7 +100,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // The container for the current page, with its background color
     // and subtle switching animation.
     var mainArea = ColoredBox(
-      color: colorScheme.surfaceVariant,
+      color: colorScheme.surfaceContainerHighest,
       child: AnimatedSwitcher(
         duration: Duration(milliseconds: 200),
         child: page,
