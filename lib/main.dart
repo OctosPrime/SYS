@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sys/screens/formulario.dart';
 import 'package:sys/screens/pag_inicial.dart';
+
 //import 'package:sys/screens/login.dart';
 void main() {
   runApp(MyApp());
@@ -12,9 +13,7 @@ void main() {
 
 class MyApp extends StatelessWidget {
   final String? nome;
-  const MyApp({this.nome ,super.key});
-
-  
+  const MyApp({this.nome, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,9 +22,19 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Namer App',
         theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 16, 2, 147)),
-        ),
+            useMaterial3: true,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color.fromARGB(255, 11, 25, 45),
+              surfaceContainer: const Color.fromARGB(255, 254, 178, 38),
+              primary: const Color.fromARGB(255, 11, 25, 45),
+              onPrimary: const Color.fromARGB(255, 254, 178, 38),
+              surface: const Color.fromARGB(255, 254, 178, 38),
+              onSurface: const Color.fromARGB(255, 11, 25, 45),
+              onSecondary: const Color.fromARGB(255, 254, 178, 38),
+            ),
+            scaffoldBackgroundColor: const Color.fromARGB(255, 11, 25, 45),
+            hoverColor: const Color.fromARGB(255, 254, 178, 38),
+            primaryColor: const Color.fromARGB(255, 11, 25, 45)),
         home: MyHomePage(),
       ),
     );
@@ -50,8 +59,6 @@ class MyAppState extends ChangeNotifier {
 
   var infos = <String?>[];
 
-  
-  
   void toggleFavorite2([WordPair? pair]) {
     pair = pair ?? current;
     if (favorites.contains(pair)) {
@@ -62,7 +69,7 @@ class MyAppState extends ChangeNotifier {
     notifyListeners();
   }
 
-   void toggleFavorite(nome){
+  void toggleFavorite(nome) {
     infos.add(nome);
     notifyListeners();
   }
@@ -88,7 +95,7 @@ class _MyHomePageState extends State<MyHomePage> {
     Widget page;
     switch (selectedIndex) {
       case 0:
-        page = Register();
+        page = PagInicial();
         break;
       case 1:
         page = FavoritesPage();
@@ -121,7 +128,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     items: [
                       BottomNavigationBarItem(
                         icon: Icon(Icons.home),
-                        label: 'Inicio',
+                        label: 'Início',
                       ),
                       BottomNavigationBarItem(
                         icon: Icon(Icons.pages),
@@ -147,11 +154,11 @@ class _MyHomePageState extends State<MyHomePage> {
                     destinations: [
                       NavigationRailDestination(
                         icon: Icon(Icons.home),
-                        label: Text('Home'),
+                        label: Text('Início'),
                       ),
                       NavigationRailDestination(
                         icon: Icon(Icons.pages),
-                        label: Text('Favorites'),
+                        label: Text('Técnicos'),
                       ),
                     ],
                     selectedIndex: selectedIndex,
@@ -234,7 +241,7 @@ class BigCard extends StatelessWidget {
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
     var style = theme.textTheme.displayMedium!.copyWith(
-      color: theme.colorScheme.onPrimary,
+      color: theme.colorScheme.onSecondary,
     );
 
     return Card(
@@ -297,7 +304,7 @@ class FavoritesPage extends StatelessWidget {
                 ListTile(
                   leading: IconButton(
                     icon: Icon(Icons.delete_outline, semanticLabel: 'Delete'),
-                    color: theme.colorScheme.primary,
+                    color: theme.colorScheme.onSecondary,
                     onPressed: () {
                       appState.removeFavorite(pair);
                     },
@@ -376,4 +383,3 @@ class _HistoryListViewState extends State<HistoryListView> {
     );
   }
 }
-
