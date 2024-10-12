@@ -4,6 +4,7 @@ import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sys/screens/formulario.dart';
+import 'package:sys/screens/login.dart';
 import 'package:sys/screens/pag_inicial.dart';
 
 //import 'package:sys/screens/login.dart';
@@ -29,12 +30,12 @@ class MyApp extends StatelessWidget {
               primary: const Color.fromARGB(255, 11, 25, 45),
               onPrimary: const Color.fromARGB(255, 254, 178, 38),
               surface: const Color.fromARGB(255, 254, 178, 38),
-              onSurface: const Color.fromARGB(255, 11, 25, 45),
+              onSurface: const Color.fromARGB(255, 255, 255, 255),
               onSecondary: const Color.fromARGB(255, 254, 178, 38),
             ),
             scaffoldBackgroundColor: const Color.fromARGB(255, 11, 25, 45),
             hoverColor: const Color.fromARGB(255, 254, 178, 38),
-            primaryColor: const Color.fromARGB(255, 11, 25, 45)),
+            primaryColor: const Color.fromARGB(255, 255, 255, 255)),
         home: MyHomePage(),
       ),
     );

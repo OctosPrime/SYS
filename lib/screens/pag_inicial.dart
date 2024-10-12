@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sys/main.dart';
-import 'package:sys/screens/exibir.dart';
+import 'package:sys/screens/chamado.dart';
+import 'package:sys/screens/exibir_tec.dart';
+import 'package:sys/screens/lista_chamados.dart';
 
 class PagInicial extends StatelessWidget {
   const PagInicial({super.key});
@@ -10,7 +12,7 @@ class PagInicial extends StatelessWidget {
     // Obtém a largura da tela
     final screenWidth = MediaQuery.of(context).size.width;
     // Define a largura dos botões com base na largura da tela
-    final buttonWidth = screenWidth * 0.8; // 80% da largura da tela
+    final buttonWidth = screenWidth * 0.4; // 80% da largura da tela
 
     return Scaffold(
       appBar: AppBar(title: const Text("Exibição")),
@@ -35,8 +37,9 @@ Widget _buildUI(BuildContext context, double buttonWidth) {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) =>
-                            exibir()), //tem que exibir a tela de chamados disponiveis.
+                        builder: (context) => ChamadosListScreen(
+                              chamados: [],
+                            )), //tem que exibir a tela de chamados disponiveis.
                   );
                 },
                 style: ElevatedButton.styleFrom(
@@ -49,12 +52,12 @@ Widget _buildUI(BuildContext context, double buttonWidth) {
               const SizedBox(height: 30), // Espaçamento entre os botões
               ElevatedButton(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            exibir()), //tem que exibir a tela de ordens de serviços disponiveis
-                  );
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(
+                  //       builder: (context) =>
+                  //           exibir()), //tem que exibir a tela de ordens de serviços disponiveis
+                  // );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.onSecondary,
@@ -69,7 +72,7 @@ Widget _buildUI(BuildContext context, double buttonWidth) {
                     context,
                     MaterialPageRoute(
                         builder: (context) =>
-                            exibir()), //tem que exibir a tela de técnicos cadastrados.
+                            TecnicosListScreen()), //tem que exibir a tela de técnicos cadastrados.
                   );
                 },
                 style: ElevatedButton.styleFrom(
