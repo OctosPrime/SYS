@@ -3,6 +3,7 @@ import 'package:sys/main.dart';
 import 'package:sys/screens/chamado.dart';
 import 'package:sys/screens/exibir_tec.dart';
 import 'package:sys/screens/lista_chamados.dart';
+import 'package:sys/screens/tec_chamados.dart';
 
 class PagInicial extends StatelessWidget {
   const PagInicial({super.key});
@@ -37,10 +38,10 @@ Widget _buildUI(BuildContext context, double buttonWidth) {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => ChamadosListScreen(
-                              chamados: [],
-                            )), //tem que exibir a tela de chamados disponiveis.
-                  );
+                      builder: (context) =>
+                          ChamadosListScreen(), // Passando a lista
+                    ),
+                  ); //tem que exibir a tela de chamados disponiveis.
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.onSecondary,

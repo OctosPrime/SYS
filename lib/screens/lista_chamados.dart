@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sys/screens/chamado.dart';
 import 'package:sys/screens/detalhes_chamado.dart';
+import 'package:sys/screens/exibir_tec.dart';
 
 class ChamadoCriado {
   String tipo;
@@ -31,18 +32,70 @@ class ChamadoCriado {
 }
 
 class ChamadosListScreen extends StatelessWidget {
-  final List<ChamadoCriado> chamados;
+  final Tecnico? tecnico;
 
-  ChamadosListScreen({required this.chamados});
+  ChamadosListScreen({this.tecnico});
+
+  final List<ChamadoCriado> chamados = [
+    ChamadoCriado(
+      tipo: 'Manutenção',
+      chamado: '78954',
+      cliente: 'Charlinda Queiros',
+      equipamento: 'Raio X',
+      dataHora: DateTime.now(),
+      endereco: 'Rua Raio Queoparta, 2032',
+      celular: '99999-9999',
+      link: "https://maps.app.goo.gl/a6qk5kxjg5RwZQR76",
+      observacao: 'Raio X com diversos defeitos físicos e de software',
+      tecnico: 'Welton Ulkovski',
+      status: 'Em Andamento',
+    ),
+    ChamadoCriado(
+      tipo: 'Manutenção',
+      chamado: '45672',
+      cliente: 'Judith Pereira SA',
+      equipamento: 'Impressora',
+      dataHora: DateTime.now(),
+      endereco: 'Rua João Paulo, 1508',
+      celular: '67998421321',
+      link: "https://maps.app.goo.gl/a6qk5kxjg5RwZQR76",
+      observacao: 'Maquina quase toda quebrada',
+      tecnico: 'Carina Uchiha',
+      status: 'Aberto',
+    ),
+    ChamadoCriado(
+      tipo: 'Manutenção',
+      chamado: '98751',
+      cliente: 'Cassems Luciano',
+      equipamento: 'Impressora',
+      dataHora: DateTime.now(),
+      endereco: 'Rua Alcídes Melquíades, 1072',
+      celular: '6798484241',
+      link: "https://maps.app.goo.gl/a6qk5kxjg5RwZQR76",
+      observacao: 'Observação A',
+      tecnico: 'Jorge Botafogo',
+      status: 'Finalizado',
+    ),
+    // Adicione mais chamados conforme necessário
+  ];
 
   @override
   Widget build(BuildContext context) {
+    final List<ChamadoCriado> chamadosFiltrados = tecnico == null
+        ? chamados
+        : chamados
+            .where((chamado) => chamado.tecnico == tecnico!.nome)
+            .toList();
     return Scaffold(
-      appBar: AppBar(title: Text('Chamados')),
+      appBar: AppBar(
+        title: Text(tecnico == null
+            ? 'Todos os Chamados'
+            : 'Chamados de ${tecnico!.nome}'),
+      ),
       body: ListView.builder(
-        itemCount: chamados.length,
+        itemCount: chamadosFiltrados.length,
         itemBuilder: (context, index) {
-          final chamado = chamados[index];
+          final chamado = chamadosFiltrados[index];
           return GestureDetector(
             onTap: () {
               Navigator.push(
