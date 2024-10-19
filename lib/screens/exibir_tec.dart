@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sys/screens/edit_tec.dart';
 import 'package:sys/screens/formulario.dart';
 import 'package:sys/screens/lista_chamados.dart';
 import 'package:sys/screens/tec_chamados.dart';
@@ -67,8 +68,7 @@ class TecnicosListScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          ChamadosListScreen(tecnico: tecnico),
+                      builder: (context) => EditTecnicoScreen(tecnico: tecnico),
                     ),
                   );
                 },

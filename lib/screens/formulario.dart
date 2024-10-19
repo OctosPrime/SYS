@@ -94,13 +94,13 @@ class _MyWidgetState extends State<Register> {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
                     void main() async {
-                      final db = Database();
+                      final db = database();
                       await db.connect();
                       await db.createTable();
 
-                      // Exemplo de inserção de um usuário
-                      await db.insertUser('John Doe', 'john.doe@example.com',
-                          '+5511999999999', 'securepassword');
+                      // // Exemplo de inserção de um usuário
+                      // await db.insertUser('John Doe', 'john.doe@example.com',
+                      //     '+5511999999999', 'securepassword');
 
                       // Adicione outras operações que deseja realizar aqui
                     }

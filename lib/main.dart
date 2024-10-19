@@ -2,7 +2,9 @@
 
 import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart';
 import 'package:provider/provider.dart';
+import 'package:sys/databases/db.dart';
 import 'package:sys/screens/formulario.dart';
 import 'package:sys/screens/login.dart';
 import 'package:sys/screens/pag_inicial.dart';
@@ -16,6 +18,12 @@ class MyApp extends StatelessWidget {
   final String? nome;
   const MyApp({this.nome, super.key});
 
+  void main() async {
+    final db = database();
+    await db.connect();
+    await db.createTable();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -27,13 +35,13 @@ class MyApp extends StatelessWidget {
             colorScheme: ColorScheme.fromSeed(
               seedColor: const Color.fromARGB(255, 11, 25, 45),
               surfaceContainer: const Color.fromARGB(255, 254, 178, 38),
-              primary: const Color.fromARGB(255, 11, 25, 45),
+              primary: const Color.fromARGB(255, 253, 253, 253),
               onPrimary: const Color.fromARGB(255, 254, 178, 38),
-              surface: const Color.fromARGB(255, 254, 178, 38),
+              surface: const Color.fromARGB(255, 255, 255, 255),
               onSurface: const Color.fromARGB(255, 255, 255, 255),
-              onSecondary: const Color.fromARGB(255, 254, 178, 38),
+              onSecondary: const Color.fromARGB(255, 11, 25, 45),
             ),
-            scaffoldBackgroundColor: const Color.fromARGB(255, 11, 25, 45),
+            scaffoldBackgroundColor: const Color.fromARGB(255, 254, 178, 38),
             hoverColor: const Color.fromARGB(255, 254, 178, 38),
             primaryColor: const Color.fromARGB(255, 255, 255, 255)),
         home: MyHomePage(),

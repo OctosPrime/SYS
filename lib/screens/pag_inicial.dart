@@ -16,7 +16,10 @@ class PagInicial extends StatelessWidget {
     final buttonWidth = screenWidth * 0.4; // 80% da largura da tela
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Exibição")),
+      appBar: AppBar(
+        title: Image.asset('assets/images/logo.png', fit: BoxFit.cover),
+        toolbarHeight: 130,
+      ),
       body: _buildUI(context, buttonWidth),
     );
   }
