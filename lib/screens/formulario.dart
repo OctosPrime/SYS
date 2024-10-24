@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sys/databases/db.dart';
+//import 'package:sys/databases/db.dart';
 import 'package:sys/utils/extensions.dart';
 import 'package:sys/widgets/custom_form_field.dart';
 import 'package:sys/screens/exibir_tec.dart';
@@ -93,17 +93,17 @@ class _MyWidgetState extends State<Register> {
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
-                    void main() async {
-                      final db = database();
-                      await db.connect();
-                      await db.createTable();
+                    // void main() async {
+                    //   final db = database();
+                    //   await db.connect();
+                    //   await db.createTable();
 
-                      // // Exemplo de inserção de um usuário
-                      // await db.insertUser('John Doe', 'john.doe@example.com',
-                      //     '+5511999999999', 'securepassword');
+                    //   // // Exemplo de inserção de um usuário
+                    //   // await db.insertUser('John Doe', 'john.doe@example.com',
+                    //   //     '+5511999999999', 'securepassword');
 
-                      // Adicione outras operações que deseja realizar aqui
-                    }
+                    //   // Adicione outras operações que deseja realizar aqui
+                    // }
 
                     Navigator.push(
                         context,

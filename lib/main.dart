@@ -18,11 +18,11 @@ class MyApp extends StatelessWidget {
   final String? nome;
   const MyApp({this.nome, super.key});
 
-  void main() async {
-    final db = database();
-    await db.connect();
-    await db.createTable();
-  }
+  // void main() async {
+  //   final db = database();
+  //   await db.connect();
+  //   await db.createTable();
+  // }
 
   @override
   Widget build(BuildContext context) {
