@@ -1,48 +1,39 @@
-// import 'package:postgres/postgres.dart';
+import 'package:mysql1/mysql1.dart';
 
-// ignore: camel_case_types
-// class database {
-//   ignore: prefer_typing_uninitialized_variables
-//   late final _connection;
+Future<MySqlConnection> conectarBancoDeDados() async {
+  final conn = await MySqlConnection.connect(ConnectionSettings(
+    host: 'sysmedicalapp.mysql.dbaas.com.br',
+    port: 3306, // Porta padrão do MySQL
+    user: 'sysmedicalapp',
+    db: 'sysmedicalapp',
+    password: 'SysMedical123!',
+  ));
 
-//   Future<void> connect() async {
-//     try {
-//       _connection = await Connection.open(Endpoint(
-//         host: 'sysmedbd.postgresql.dbaas.com.br',
-//         database: 'sysmedbd',
-//         username: 'sysmedbd',
-//         password: 'SysMedicalBd1@',
-//       ));
-//       print(_connection - "conectou");
-//     } catch (e) {
-//       print("error");
-//     }
-//   }
+  try {
+    // Verifique se a tabela já existe
+    var resultado = await conn.query("SHOW TABLES LIKE 'usuarios';");
 
-//   Future<void> createTable() async {
-//     await _connection.execute('''
-//       CREATE TABLE IF NOT EXISTS users (
-//         id SERIAL PRIMARY KEY,
-//         name VARCHAR(100) NOT NULL,
-//         email VARCHAR(100) NOT NULL UNIQUE,
-//         phone VARCHAR(15) NOT NULL,
-//         password TEXT NOT NULL
-//       )
-//     ''');
-//     print("deu certo");
-//   }
+    if (resultado.isEmpty) {
+      // Crie a tabela se não existir
+      await conn.query('''
+        CREATE TABLE usuarios (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          nome VARCHAR(100) NOT NULL,
+          email VARCHAR(100) UNIQUE NOT NULL,
+          celular VARCHAR(15),
+          senha VARCHAR(100) NOT NULL
+        );
+      ''');
+      print("Tabela 'usuarios' criada com sucesso.");
+    } else {
+      print("Tabela 'usuarios' já existe.");
+    }
+  } catch (e) {
+    print('Erro ao verificar ou criar tabela: $e');
+  } finally {
+    // Fechar a conexão
+    await conn.close();
+  }
 
-//   Future<void> insertUser(
-//       String name, String email, String phone, String password) async {
-//     await _connection!.execute('''
-//       INSERT INTO users (name, email, phone, password) VALUES (@name, @mail, @phone, @password)
-//     ''', substitutionValues: {
-//       'name': name,
-//       'mail': email,
-//       'phone': phone,
-//       'password': password,
-//     });
-//   }
-
-  // Add other CRUD operations here
-//}
+  return conn;
+}

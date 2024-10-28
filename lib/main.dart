@@ -12,6 +12,9 @@ import 'package:sys/screens/pag_inicial.dart';
 //import 'package:sys/screens/login.dart';
 void main() {
   runApp(MyApp());
+  conectarBancoDeDados().then((_) {
+    // Outros códigos de inicialização
+  });
 }
 
 class MyApp extends StatelessWidget {
