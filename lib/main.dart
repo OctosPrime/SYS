@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, library_private_types_in_public_api
 
 import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +15,7 @@ void main() {
   verificarOuCriarTabela().then((_) {
     // Outros códigos de inicialização
   });
+  criarTabelaChamado().then((_) {});
   buscarDados();
 }
 
@@ -48,7 +49,7 @@ class MyApp extends StatelessWidget {
             scaffoldBackgroundColor: const Color.fromARGB(255, 254, 178, 38),
             hoverColor: const Color.fromARGB(255, 254, 178, 38),
             primaryColor: const Color.fromARGB(255, 255, 255, 255)),
-        home: MyHomePage(),
+        home: Login(),
       ),
     );
   }
@@ -96,10 +97,19 @@ class MyAppState extends ChangeNotifier {
 class MyHomePage extends StatefulWidget {
   @override
   State<MyHomePage> createState() => _MyHomePageState();
+  @override
+  final GlobalKey<_MyHomePageState> key;
+  MyHomePage({required this.key}) : super(key: key);
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  var selectedIndex = 0;
+  int selectedIndex = 0;
+
+  void setPage(int index) {
+    setState(() {
+      selectedIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +118,7 @@ class _MyHomePageState extends State<MyHomePage> {
     Widget page;
     switch (selectedIndex) {
       case 0:
-        page = Login();
+        page = PagInicial();
         break;
       case 1:
         page = FavoritesPage();

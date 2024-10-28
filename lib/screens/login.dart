@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sys/databases/db.dart';
+import 'package:sys/main.dart';
 import 'package:sys/screens/pag_inicial.dart';
 import 'package:sys/utils/extensions.dart';
 import 'package:sys/widgets/custom_form_field.dart';
@@ -27,7 +28,7 @@ class _MyWidgetState extends State<Login> {
 
     if (credenciaisValidas) {
       // Avançar para a próxima tela
-      Navigator.push(
+      Navigator.pushReplacement(
           // ignore: use_build_context_synchronously
           context,
           MaterialPageRoute(

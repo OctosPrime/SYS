@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:sys/databases/db.dart';
 import 'package:sys/utils/extensions.dart';
 import 'package:sys/widgets/custom_form_field.dart';
 import 'package:sys/screens/exibir_tec.dart';
@@ -222,6 +224,24 @@ class _MyWidgetState extends State<Chamado> {
                     if (_formKey.currentState!.validate()) {
                       _formKey.currentState!.save();
                       print("o cliente é $cliente");
+                      String dateString =
+                          "$data $hora"; // Exemplo de string de data
+                      print(dateString);
+                      DateFormat dateFormat = DateFormat("dd/MM/yyyy hh:mm a");
+                      DateTime dateTime = dateFormat.parse(dateString);
+
+                      criarChamado(
+                          "$tipo",
+                          "$chamado",
+                          "$cliente",
+                          "$equipamento",
+                          dateTime,
+                          "$endereco",
+                          "$celular",
+                          "$link",
+                          "$observacao",
+                          "$tecnico",
+                          "$status");
                       Navigator.push(
                           context,
                           MaterialPageRoute(
