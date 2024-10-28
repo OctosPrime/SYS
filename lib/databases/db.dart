@@ -64,6 +64,31 @@ Future<void> inserirUsuario(
   }
 }
 
+Future<bool> verificarCredenciais(String email, String senha) async {
+  var conn = await conectarBancoDeDados();
+
+  try {
+    // Execute a consulta para verificar as credenciais
+    var resultado = await conn.query(
+        'SELECT * FROM usuarios WHERE email = ? AND senha = ?', [email, senha]);
+
+    // Verifique se o resultado contém registros
+    if (resultado.isNotEmpty) {
+      print("Login bem-sucedido!");
+      return true; // As credenciais estão corretas
+    } else {
+      print("Email ou senha incorretos.");
+      return false; // Credenciais incorretas
+    }
+  } catch (e) {
+    print('Erro ao verificar credenciais: $e');
+    return false;
+  } finally {
+    await conn.close();
+  }
+}
+
+// Temporário só pra testar se o DB está funcionando.
 void buscarDados() async {
   try {
     var conn = await conectarBancoDeDados();
