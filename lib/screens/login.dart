@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sys/databases/db.dart';
 import 'package:sys/screens/pag_inicial.dart';
 import 'package:sys/utils/extensions.dart';
-import 'package:sys/widgets/login_field.dart';
+import 'package:sys/widgets/custom_form_field.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -38,6 +38,7 @@ class _MyWidgetState extends State<Login> {
     } else {
       // Exibir mensagem de erro
       print("Falha no login. Verifique suas credenciais.");
+      print({email, senha});
     }
   }
 
@@ -59,6 +60,11 @@ class _MyWidgetState extends State<Login> {
                   }
                   return null;
                 },
+                onSaved: (val) {
+                  setState(() {
+                    email = val;
+                  });
+                },
               ),
               CustomFormField(
                 hintText: 'Password',
@@ -68,6 +74,11 @@ class _MyWidgetState extends State<Login> {
                     return 'Coloque uma senha válida.';
                   }
                   return null;
+                },
+                onSaved: (val) {
+                  setState(() {
+                    senha = val;
+                  });
                 },
               ),
               ElevatedButton(
