@@ -9,6 +9,13 @@ Future<MySqlConnection> conectarBancoDeDados() async {
     password: 'SysMedical123!',
   ));
 
+  return conn;
+}
+
+Future<void> verificarOuCriarTabela() async {
+  // Configurações de conexão
+  var conn = await conectarBancoDeDados();
+
   try {
     // Verifique se a tabela já existe
     var resultado = await conn.query("SHOW TABLES LIKE 'usuarios';");
@@ -34,6 +41,41 @@ Future<MySqlConnection> conectarBancoDeDados() async {
     // Fechar a conexão
     await conn.close();
   }
+}
 
-  return conn;
+Future<void> inserirUsuario(
+    String nome, String email, String celular, String senha) async {
+  // Conectar ao banco de dados
+  var conn = await conectarBancoDeDados();
+
+  try {
+    // Inserir os dados na tabela
+    var resultado = await conn.query(
+      'INSERT INTO usuarios (nome, email, celular, senha) VALUES (?, ?, ?, ?)',
+      [nome, email, celular, senha],
+    );
+
+    print('Usuário adicionado com ID: ${resultado.insertId}');
+  } catch (e) {
+    print('Erro ao inserir usuário: $e');
+  } finally {
+    // Fechar a conexão
+    await conn.close();
+  }
+}
+
+void buscarDados() async {
+  try {
+    var conn = await conectarBancoDeDados();
+
+    var results = await conn.query('SELECT * FROM usuarios');
+
+    for (var row in results) {
+      print('Coluna 1: ${row[0]}, Coluna 2: ${row[1]}');
+    }
+
+    await conn.close();
+  } catch (e) {
+    print('Erro ao conectar ao banco de dados: $e');
+  }
 }
