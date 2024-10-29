@@ -228,7 +228,7 @@ class _MyWidgetState extends State<Chamado> {
                           "$data $hora"; // Exemplo de string de data
                       print(dateString);
                       DateFormat dateFormat = DateFormat("dd/MM/yyyy hh:mm a");
-                      DateTime dateTime = dateFormat.parse(dateString);
+                      DateTime dateTime = dateFormat.parse(dateString, true);
 
                       criarChamado(
                           "$tipo",
