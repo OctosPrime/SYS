@@ -12,11 +12,11 @@ import 'package:sys/screens/pag_inicial.dart';
 //import 'package:sys/screens/login.dart';
 void main() {
   runApp(MyApp());
-  verificarOuCriarTabela().then((_) {
-    // Outros códigos de inicialização
-  });
-  criarTabelaChamado().then((_) {});
-  buscarDados();
+  //verificarOuCriarTabela().then((_) {
+  // Outros códigos de inicialização
+  // });
+  // criarTabelaChamado().then((_) {});
+  // buscarDados();
 }
 
 class MyApp extends StatelessWidget {
