@@ -1,0 +1,40 @@
+const express = require('express');
+const bodyParser = require('body-parser');
+const app = express();
+
+app.use(bodyParser.json());
+
+app.post('/inserir-usuario', (req, res) => {
+  const { nome, email, celular, senha } = req.body;
+  const sql = 'INSERT INTO usuarios (nome, email, celular, senha, adm) VALUES (?, ?, ?, ?, 0)';
+  db.query(sql, [nome, email, celular, senha], (err, result) => {
+    if (err) return res.status(500).send('Erro ao inserir usuário');
+    res.send({ success: true, insertId: result.insertId });
+  });
+});
+
+app.post('/criar-chamado', (req, res) => {
+  const { tipo, chamado, cliente, equipamento, data, endereco, celular, link, observacao, tecnico, status } = req.body;
+  const sql = 'INSERT INTO chamados (tipo, chamado, cliente, equipamento, data, endereco, celular, link, observacao, tecnico, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+  db.query(sql, [tipo, chamado, cliente, equipamento, data, endereco, celular, link, observacao, tecnico, status], (err, result) => {
+    if (err) return res.status(500).send('Erro ao criar chamado');
+    res.send({ success: true, insertId: result.insertId });
+  });
+});
+
+app.post('/verificar-credenciais', (req, res) => {
+  const { email, senha } = req.body;
+  const sql = 'SELECT * FROM usuarios WHERE email = ? AND senha = ?';
+  db.query(sql, [email, senha], (err, result) => {
+    if (err) return res.status(500).send('Erro ao verificar credenciais');
+    if (result.length > 0) {
+      res.send({ success: true });
+    } else {
+      res.send({ success: false });
+    }
+  });
+});
+
+app.listen(3000, () => {
+  console.log('Servidor rodando na porta 3000');
+});

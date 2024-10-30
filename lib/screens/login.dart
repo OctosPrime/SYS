@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sys/databases/db.dart';
 import 'package:sys/main.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:sys/screens/pag_inicial.dart';
 import 'package:sys/utils/extensions.dart';
 import 'package:sys/widgets/custom_form_field.dart';
@@ -23,6 +25,22 @@ class _MyWidgetState extends State<Login> {
         appBar: AppBar(title: const Text("Login")), body: _buildUI());
   }
 
+  Future<bool> verificarCredenciais(String email, String senha) async {
+    final url = Uri.parse('https://sysmedical.net.br/apis/api.php');
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'email': email, 'senha': senha}),
+    );
+
+    if (response.statusCode == 200) {
+      final responseBody = json.decode(response.body);
+      return responseBody['success'];
+    } else {
+      throw Exception('Erro ao verificar credenciais');
+    }
+  }
+
   void entrar(String email, String senha) async {
     bool credenciaisValidas = await verificarCredenciais(email, senha);
 
@@ -31,10 +49,7 @@ class _MyWidgetState extends State<Login> {
       Navigator.pushReplacement(
           // ignore: use_build_context_synchronously
           context,
-          MaterialPageRoute(
-              builder: (context) =>
-                  PagInicial()) //tem que exibir a tela de técnicos cadastrados.
-          );
+          MaterialPageRoute(builder: (context) => PagInicial()));
       print("Login bem-sucedido. Avançando para a próxima tela.");
     } else {
       // Exibir mensagem de erro
