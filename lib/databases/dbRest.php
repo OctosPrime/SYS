@@ -27,12 +27,12 @@ function verificarOuCriarTabelas($conn) {
             adm INT(11) NOT NULL
         )";
         if ($conn->query($sql) === TRUE) {
-            echo "Tabela 'usuarios' criada com sucesso.";
+            echo json_encode("Tabela 'usuarios' criada com sucesso.");
         } else {
-            echo "Erro ao criar tabela 'usuarios': " . $conn->error;
+            echo json_encode("Erro ao criar tabela 'usuarios': " . $conn->error);
         }
     } else {
-        echo "Tabela 'usuarios' já existe.";
+        //echo json_encode('Tabela usuarios criada com sucesso.');
     }
 
     // Verificar ou criar tabela chamados
@@ -55,12 +55,12 @@ function verificarOuCriarTabelas($conn) {
             status VARCHAR(50) NOT NULL
         )";
         if ($conn->query($sql) === TRUE) {
-            echo "Tabela 'chamados' criada com sucesso.";
+            echo json_encode("Tabela 'chamados' criada com sucesso.");
         } else {
-            echo "Erro ao criar tabela 'chamados': " . $conn->error;
+            echo json_encode("Erro ao criar tabela 'chamados': " . $conn->error);
         }
     } else {
-        echo "Tabela 'chamados' já existe.";
+        echo json_encode("Tabela 'chamados' ja existe.");
     }
 }
 

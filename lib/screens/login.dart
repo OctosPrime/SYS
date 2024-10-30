@@ -26,10 +26,14 @@ class _MyWidgetState extends State<Login> {
   }
 
   Future<bool> verificarCredenciais(String email, String senha) async {
-    final url = Uri.parse('https://sysmedical.net.br/apis/api.php');
+    final url = Uri.parse('http://localhost:80/api.php');
     final response = await http.post(
       url,
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET,PUT,PATCH,POST,DELETE"
+      },
       body: json.encode({'email': email, 'senha': senha}),
     );
 

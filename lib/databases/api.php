@@ -10,7 +10,7 @@ function inserirUsuario($conn, $nome, $email, $celular, $senha) {
     if ($sql->execute()) {
         echo json_encode(['success' => true, 'insertId' => $sql->insert_id]);
     } else {
-        echo json_encode(['success' => false, 'message' => 'Erro ao inserir usuário: ' . $sql->error]);
+        echo json_encode(['success' => false, 'message' => 'Erro ao inserir usuario: ' . $sql->error]);
     }
 }
 
@@ -56,14 +56,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 verificarCredenciais($conn, $input['email'], $input['senha']);
                 break;
             default:
-                echo json_encode(['success' => false, 'message' => 'Ação inválida.']);
+                echo json_encode(['success' => false, 'message' => 'Acao invalida.']);
                 break;
         }
     } else {
-        echo json_encode(['success' => false, 'message' => 'Nenhuma ação fornecida.']);
+        echo json_encode(['success' => false, 'message' => 'Nenhuma acao fornecida.']);
     }
 } else {
-    echo json_encode(['success' => false, 'message' => 'Método HTTP inválido.']);
+    echo json_encode(['success' => false, 'message' => 'Metodo HTTP invalido.']);
 }
 
 $conn->close();
