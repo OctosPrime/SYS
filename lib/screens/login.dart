@@ -30,11 +30,12 @@ class _MyWidgetState extends State<Login> {
     final response = await http.post(
       url,
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json; charset=utf-8',
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET,PUT,PATCH,POST,DELETE"
       },
-      body: json.encode({'email': email, 'senha': senha}),
+      body: json.encode(
+          {'action': 'verificarCredenciais', 'email': email, 'senha': senha}),
     );
 
     if (response.statusCode == 200) {
