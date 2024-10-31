@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:sys/databases/db.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:sys/utils/extensions.dart';
 import 'package:sys/widgets/custom_form_field.dart';
 import 'package:sys/screens/exibir_tec.dart';
@@ -32,6 +33,49 @@ class _MyWidgetState extends State<Chamado> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(title: const Text("Criar chamado")), body: _buildUI());
+  }
+
+  Future<bool> criarChamado(
+      String tipo,
+      String chamado,
+      String cliente,
+      String equipamento,
+      dateTime,
+      String endereco,
+      String celular,
+      String link,
+      String observacao,
+      String tecnico,
+      String status) async {
+    final url = Uri.parse('http://10.0.2.2:3000/verificar-credenciais');
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET,PUT,PATCH,POST,DELETE"
+      },
+      body: json.encode({
+        'tipo': tipo,
+        'chamado': chamado,
+        'cliente': cliente,
+        'equipamento': equipamento,
+        'data': dateTime,
+        'endereco': endereco,
+        'celular': celular,
+        'link': link,
+        'observacao': observacao,
+        'tecnico': tecnico,
+        'status': status
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final responseBody = json.decode(response.body);
+      return responseBody['success'];
+    } else {
+      throw Exception('Erro ao criar chamado.');
+    }
   }
 
   Widget _buildUI() {
@@ -235,7 +279,7 @@ class _MyWidgetState extends State<Chamado> {
                           "$chamado",
                           "$cliente",
                           "$equipamento",
-                          dateTime,
+                          dateString,
                           "$endereco",
                           "$celular",
                           "$link",

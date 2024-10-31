@@ -26,7 +26,7 @@ class _MyWidgetState extends State<Login> {
   }
 
   Future<bool> verificarCredenciais(String email, String senha) async {
-    final url = Uri.parse('http://localhost:80/api.php');
+    final url = Uri.parse('http://10.0.2.2:3000/verificar-credenciais');
     final response = await http.post(
       url,
       headers: {
@@ -34,8 +34,7 @@ class _MyWidgetState extends State<Login> {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET,PUT,PATCH,POST,DELETE"
       },
-      body: json.encode(
-          {'action': 'verificarCredenciais', 'email': email, 'senha': senha}),
+      body: json.encode({'email': email, 'senha': senha}),
     );
 
     if (response.statusCode == 200) {
