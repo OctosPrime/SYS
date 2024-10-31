@@ -1,4 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:sys/screens/chamado.dart';
 import 'package:sys/screens/detalhes_chamado.dart';
 import 'package:sys/screens/exibir_tec.dart';
@@ -29,164 +32,198 @@ class ChamadoCriado {
     required this.tecnico,
     required this.status,
   });
+
+  factory ChamadoCriado.fromJson(Map<String, dynamic> json) {
+    return ChamadoCriado(
+      tipo: json['tipo'],
+      chamado: json['chamado'],
+      cliente: json['cliente'],
+      equipamento: json['equipamento'],
+      dataHora: DateTime.parse(json['data']),
+      endereco: json['endereco'],
+      celular: json['celular'],
+      link: json['link'],
+      observacao: json['observacao'],
+      tecnico: json['tecnico'],
+      status: json['status'],
+    );
+  }
 }
 
-class ChamadosListScreen extends StatelessWidget {
+class ChamadosListScreen extends StatefulWidget {
   final Tecnico? tecnico;
 
   ChamadosListScreen({this.tecnico});
 
-  final List<ChamadoCriado> chamados = [
-    ChamadoCriado(
-      tipo: 'Manutenção',
-      chamado: '78954',
-      cliente: 'Charlinda Queiros',
-      equipamento: 'Raio X',
-      dataHora: DateTime.now(),
-      endereco: 'Rua Raio Queoparta, 2032',
-      celular: '99999-9999',
-      link: "https://maps.app.goo.gl/a6qk5kxjg5RwZQR76",
-      observacao: 'Raio X com diversos defeitos físicos e de software',
-      tecnico: 'Welton Ulkovski',
-      status: 'Em Andamento',
-    ),
-    ChamadoCriado(
-      tipo: 'Manutenção',
-      chamado: '45672',
-      cliente: 'Judith Pereira SA',
-      equipamento: 'Impressora',
-      dataHora: DateTime.now(),
-      endereco: 'Rua João Paulo, 1508',
-      celular: '67998421321',
-      link: "https://maps.app.goo.gl/a6qk5kxjg5RwZQR76",
-      observacao: 'Maquina quase toda quebrada',
-      tecnico: 'Carina Uchiha',
-      status: 'Aberto',
-    ),
-    ChamadoCriado(
-      tipo: 'Manutenção',
-      chamado: '98751',
-      cliente: 'Cassems Luciano',
-      equipamento: 'Impressora',
-      dataHora: DateTime.now(),
-      endereco: 'Rua Alcídes Melquíades, 1072',
-      celular: '6798484241',
-      link: "https://maps.app.goo.gl/a6qk5kxjg5RwZQR76",
-      observacao: 'Observação A',
-      tecnico: 'Jorge Botafogo',
-      status: 'Finalizado',
-    ),
-    // Adicione mais chamados conforme necessário
-  ];
+  @override
+  _ChamadosListScreenState createState() => _ChamadosListScreenState();
+}
+
+class _ChamadosListScreenState extends State<ChamadosListScreen> {
+  late Future<List<ChamadoCriado>> futurosChamados;
+
+  @override
+  void initState() {
+    super.initState();
+    futurosChamados = fetchChamados();
+  }
+
+  Future<List<ChamadoCriado>> fetchChamados() async {
+    final response =
+        await http.get(Uri.parse('http://localhost:3000/chamados'));
+
+    if (response.statusCode == 200) {
+      List jsonResponse = json.decode(response.body);
+      return jsonResponse
+          .map((chamado) => ChamadoCriado.fromJson(chamado))
+          .toList();
+    } else {
+      throw Exception('Falha ao carregar chamados');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final List<ChamadoCriado> chamadosFiltrados = tecnico == null
-        ? chamados
-        : chamados
-            .where((chamado) => chamado.tecnico == tecnico!.nome)
-            .toList();
     return Scaffold(
       appBar: AppBar(
-        title: Text(tecnico == null
+        title: Text(widget.tecnico == null
             ? 'Todos os Chamados'
-            : 'Chamados de ${tecnico!.nome}'),
+            : 'Chamados de ${widget.tecnico!.nome}'),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context, true); // Voltar e indicar atualização
+          },
+        ),
       ),
-      body: ListView.builder(
-        itemCount: chamadosFiltrados.length,
-        itemBuilder: (context, index) {
-          final chamado = chamadosFiltrados[index];
-          return GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ChamadoDetailScreen(chamado: chamado),
-                ),
-              );
-            },
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '${chamado.chamado} - ${chamado.cliente}',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            CircleAvatar(
-                              backgroundColor: _getStatusColor(chamado.status),
-                              radius: 5,
-                            ),
-                            SizedBox(width: 8),
-                            Text(
-                              chamado.status,
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+      body: FutureBuilder<List<ChamadoCriado>>(
+        future: futurosChamados,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Erro: ${snapshot.error}'));
+          } else {
+            final List<ChamadoCriado> chamados = widget.tecnico == null
+                ? snapshot.data!
+                : snapshot.data!
+                    .where((chamado) => chamado.tecnico == widget.tecnico!.nome)
+                    .toList();
+
+            return ListView.builder(
+              itemCount: chamados.length,
+              itemBuilder: (context, index) {
+                final chamado = chamados[index];
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            ChamadoDetailScreen(chamado: chamado),
+                      ),
+                    );
+                  },
+                  child: Card(
+                    margin:
+                        EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
                     ),
-                    SizedBox(height: 8),
-                    Center(
+                    elevation: 4,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  '${chamado.chamado} - ${chamado.cliente}',
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  CircleAvatar(
+                                    backgroundColor:
+                                        _getStatusColor(chamado.status),
+                                    radius: 5,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    chamado.status,
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    chamado.tipo,
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 8),
                           Text(
                             'Técnico: ${chamado.tecnico}',
-                            textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 16,
+                              color: Colors.black54,
+                              fontSize: 14,
                             ),
                           ),
                           Text(
-                            '${chamado.dataHora}',
-                            textAlign: TextAlign.center,
+                            DateFormat('dd/MM/yyyy – HH:mm')
+                                .format(chamado.dataHora),
                             style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 16,
+                              color: Colors.black54,
+                              fontSize: 14,
                             ),
                           ),
                           Text(
                             chamado.endereco,
-                            textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 16,
+                              color: Colors.black54,
+                              fontSize: 14,
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-          );
+                  ),
+                );
+              },
+            );
+          }
         },
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => Chamado()),
-          );
+        onPressed: () async {
+          bool shouldRefresh = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => Chamado()),
+              ) ??
+              false; // Padrão para false caso não retorne nada
+
+          if (shouldRefresh) {
+            setState(() {
+              futurosChamados = fetchChamados(); // Atualiza a lista de chamados
+            });
+          }
         },
       ),
     );

@@ -4,16 +4,15 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:sys/utils/extensions.dart';
 import 'package:sys/widgets/custom_form_field.dart';
-import 'package:sys/screens/exibir_tec.dart';
 
 class Chamado extends StatefulWidget {
   const Chamado({super.key});
 
   @override
-  State<Chamado> createState() => _MyWidgetState();
+  State<Chamado> createState() => _ChamadoState();
 }
 
-class _MyWidgetState extends State<Chamado> {
+class _ChamadoState extends State<Chamado> {
   final _formKey = GlobalKey<FormState>();
 
   String? tipo,
@@ -32,7 +31,9 @@ class _MyWidgetState extends State<Chamado> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: const Text("Criar chamado")), body: _buildUI());
+      appBar: AppBar(title: const Text("Criar chamado")),
+      body: _buildUI(),
+    );
   }
 
   Future<bool> criarChamado(
@@ -40,14 +41,14 @@ class _MyWidgetState extends State<Chamado> {
       String chamado,
       String cliente,
       String equipamento,
-      dateTime,
+      DateTime dateTime,
       String endereco,
       String celular,
       String link,
       String observacao,
       String tecnico,
       String status) async {
-    final url = Uri.parse('http://10.0.2.2:3000/verificar-credenciais');
+    final url = Uri.parse('http://localhost:3000/criar-chamado');
     final response = await http.post(
       url,
       headers: {
@@ -60,7 +61,7 @@ class _MyWidgetState extends State<Chamado> {
         'chamado': chamado,
         'cliente': cliente,
         'equipamento': equipamento,
-        'data': dateTime,
+        'data': dateTime.toIso8601String(),
         'endereco': endereco,
         'celular': celular,
         'link': link,
@@ -81,9 +82,7 @@ class _MyWidgetState extends State<Chamado> {
   Widget _buildUI() {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(
-          10.0,
-        ),
+        padding: const EdgeInsets.all(10.0),
         child: SingleChildScrollView(
           child: Form(
             key: _formKey,
@@ -134,7 +133,6 @@ class _MyWidgetState extends State<Chamado> {
                 ),
                 CustomFormField(
                   hintText: 'Equipamento',
-                  obscureText: true,
                   validator: (val) {
                     if (val == null || val.isEmpty) {
                       return 'Coloque nome do equipamento.';
@@ -162,7 +160,7 @@ class _MyWidgetState extends State<Chamado> {
                   },
                 ),
                 CustomTimePickerField(
-                  hintText: 'Selecione uma horário',
+                  hintText: 'Selecione um horário',
                   validator: (val) {
                     if (val == null || val.isEmpty) {
                       return 'Por favor, selecione um horário';
@@ -176,8 +174,7 @@ class _MyWidgetState extends State<Chamado> {
                   },
                 ),
                 CustomFormField(
-                  hintText: 'Endereço (Ex: Rua João Falco, 188, Moreninha)',
-                  obscureText: true,
+                  hintText: 'Endereço',
                   validator: (val) {
                     if (val == null || val.isEmpty) {
                       return 'Coloque um endereço válido.';
@@ -206,7 +203,6 @@ class _MyWidgetState extends State<Chamado> {
                 ),
                 CustomFormField(
                   hintText: 'Link para o mapa',
-                  obscureText: true,
                   validator: (val) {
                     if (val == null || val.isEmpty) {
                       return 'Coloque um link de navegação.';
@@ -263,38 +259,42 @@ class _MyWidgetState extends State<Chamado> {
                     });
                   },
                 ),
+                SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
                       _formKey.currentState!.save();
-                      print("o cliente é $cliente");
-                      String dateString =
-                          "$data $hora"; // Exemplo de string de data
-                      print(dateString);
+                      String dateString = "$data $hora";
                       DateFormat dateFormat = DateFormat("dd/MM/yyyy hh:mm a");
                       DateTime dateTime = dateFormat.parse(dateString, true);
 
                       criarChamado(
-                          "$tipo",
-                          "$chamado",
-                          "$cliente",
-                          "$equipamento",
-                          dateString,
-                          "$endereco",
-                          "$celular",
-                          "$link",
-                          "$observacao",
-                          "$tecnico",
-                          "$status");
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => TecnicosListScreen()));
+                        "$tipo",
+                        "$chamado",
+                        "$cliente",
+                        "$equipamento",
+                        dateTime,
+                        "$endereco",
+                        "$celular",
+                        "$link",
+                        "$observacao",
+                        "$tecnico",
+                        "$status",
+                      ).then((success) {
+                        if (success) {
+                          Navigator.pop(context,
+                              true); // Retorna true para atualizar a lista
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Erro ao criar chamado.'),
+                            ),
+                          );
+                        }
+                      });
                     }
                   },
-                  child: const Text(
-                    'Criar',
-                  ),
+                  child: const Text('Criar'),
                 ),
               ],
             ),

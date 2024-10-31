@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:sys/main.dart';
-import 'package:sys/screens/chamado.dart';
 import 'package:sys/screens/exibir_tec.dart';
 import 'package:sys/screens/lista_chamados.dart';
-import 'package:sys/screens/tec_chamados.dart';
 
 class PagInicial extends StatelessWidget {
   const PagInicial({super.key});
@@ -13,11 +10,17 @@ class PagInicial extends StatelessWidget {
     // Obtém a largura da tela
     final screenWidth = MediaQuery.of(context).size.width;
     // Define a largura dos botões com base na largura da tela
-    final buttonWidth = screenWidth * 0.4; // 80% da largura da tela
+    final buttonWidth = screenWidth * 0.8; // 80% da largura da tela
 
     return Scaffold(
       appBar: AppBar(
-        title: Image.asset('assets/images/logo.png', fit: BoxFit.cover),
+        title: Center(
+          child: Image.asset(
+            'assets/images/logo.png',
+            fit: BoxFit.contain,
+            height: 100, // Ajuste conforme necessário
+          ),
+        ),
         toolbarHeight: 130,
       ),
       body: _buildUI(context, buttonWidth),
@@ -36,7 +39,7 @@ Widget _buildUI(BuildContext context, double buttonWidth) {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              ElevatedButton(
+              ElevatedButton.icon(
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -44,33 +47,37 @@ Widget _buildUI(BuildContext context, double buttonWidth) {
                       builder: (context) =>
                           ChamadosListScreen(), // Passando a lista
                     ),
-                  ); //tem que exibir a tela de chamados disponiveis.
+                  ); //tem que exibir a tela de chamados disponíveis.
                 },
+                icon: Icon(Icons.list),
+                label: Text('Lista de Chamados'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.onSecondary,
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                  surfaceTintColor: Colors.white,
                   minimumSize: Size(buttonWidth,
                       50), // Garante que o botão preencha a largura do SizedBox
                 ),
-                child: const Text('Lista de Chamados'),
               ),
               const SizedBox(height: 30), // Espaçamento entre os botões
-              ElevatedButton(
+              ElevatedButton.icon(
                 onPressed: () {
                   // Navigator.push(
                   //   context,
                   //   MaterialPageRoute(
                   //       builder: (context) =>
-                  //           exibir()), //tem que exibir a tela de ordens de serviços disponiveis
+                  //           exibir()), //tem que exibir a tela de ordens de serviços disponíveis
                   // );
                 },
+                icon: Icon(Icons.build),
+                label: Text('Lista de Ordens de Serviço'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.onSecondary,
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                  surfaceTintColor: Colors.white,
                   minimumSize: Size(buttonWidth, 50),
                 ),
-                child: const Text('Lista de Ordens de Serviço'),
               ),
               const SizedBox(height: 30),
-              ElevatedButton(
+              ElevatedButton.icon(
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -79,11 +86,13 @@ Widget _buildUI(BuildContext context, double buttonWidth) {
                             TecnicosListScreen()), //tem que exibir a tela de técnicos cadastrados.
                   );
                 },
+                icon: Icon(Icons.person),
+                label: Text('Lista de Técnicos'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.onSecondary,
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                  surfaceTintColor: Colors.white,
                   minimumSize: Size(buttonWidth, 50),
                 ),
-                child: const Text('Lista de Técnicos'),
               ),
             ],
           ),

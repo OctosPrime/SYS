@@ -2,10 +2,7 @@
 
 import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart';
 import 'package:provider/provider.dart';
-import 'package:sys/databases/db.dart';
-import 'package:sys/screens/formulario.dart';
 import 'package:sys/screens/login.dart';
 import 'package:sys/screens/pag_inicial.dart';
 
@@ -40,13 +37,13 @@ class MyApp extends StatelessWidget {
             colorScheme: ColorScheme.fromSeed(
               seedColor: const Color.fromARGB(255, 11, 25, 45),
               surfaceContainer: const Color.fromARGB(255, 254, 178, 38),
-              primary: const Color.fromARGB(255, 253, 253, 253),
+              primary: const Color.fromARGB(255, 255, 255, 255),
               onPrimary: const Color.fromARGB(255, 254, 178, 38),
               surface: const Color.fromARGB(255, 255, 255, 255),
-              onSurface: const Color.fromARGB(255, 255, 255, 255),
+              onSurface: const Color.fromARGB(255, 11, 25, 45),
               onSecondary: const Color.fromARGB(255, 11, 25, 45),
             ),
-            scaffoldBackgroundColor: const Color.fromARGB(255, 254, 178, 38),
+            scaffoldBackgroundColor: const Color.fromARGB(255, 176, 177, 180),
             hoverColor: const Color.fromARGB(255, 254, 178, 38),
             primaryColor: const Color.fromARGB(255, 255, 255, 255)),
         home: Login(),
