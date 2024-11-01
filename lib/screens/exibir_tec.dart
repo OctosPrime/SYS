@@ -23,11 +23,11 @@ class Tecnico {
   // Factory constructor to create Tecnico from JSON
   factory Tecnico.fromJson(Map<String, dynamic> json) {
     return Tecnico(
-      nome: json['nome'] ?? 'Nome não disponível', // valor padrão
-      email: json['email'] ?? 'Email não disponível', // valor padrão
-      celular: json['celular'] ?? 'Celular não disponível', // valor padrão
-      status: json['status'] ?? 'Status não disponível', // valor padrão
-      chamadosAtribuidos: json['chamadosAtribuidos'] ?? 0, // valor padrão
+      nome: json['nome'] ?? 'Nome não disponível',
+      email: json['email'] ?? 'Email não disponível',
+      celular: json['celular'] ?? 'Celular não disponível',
+      status: json['status'] ?? 'Status não disponível',
+      chamadosAtribuidos: json['chamadosAtribuidos'] ?? 0,
     );
   }
 }
@@ -48,16 +48,31 @@ class _TecnicosListScreenState extends State<TecnicosListScreen> {
   }
 
   Future<void> fetchTecnicos() async {
-    final url =
-        Uri.parse('http://localhost:3000/api/tecnicos'); // URL da sua API
+    final url = Uri.parse('http://localhost:3000/api/tecnicos');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
+
+        for (var tecnicoJson in data) {
+          // Buscando os chamados atribuídos para cada técnico
+          final chamadosResponse = await http.get(
+            Uri.parse(
+                'http://localhost:3000/api/chamados/${tecnicoJson['nome']}'),
+          );
+
+          if (chamadosResponse.statusCode == 200) {
+            final List<dynamic> chamados = json.decode(chamadosResponse.body);
+            tecnicoJson['chamadosAtribuidos'] =
+                chamados.length; // Atualiza a contagem de chamados
+          } else {
+            tecnicoJson['chamadosAtribuidos'] =
+                0; // Se não houver chamados, define como 0
+          }
+        }
+
         setState(() {
-          tecnicos = data
-              .map((json) => Tecnico.fromJson(json))
-              .toList(); // mapeia os dados para a lista de técnicos
+          tecnicos = data.map((json) => Tecnico.fromJson(json)).toList();
           isLoading = false;
         });
       } else {
@@ -65,7 +80,6 @@ class _TecnicosListScreenState extends State<TecnicosListScreen> {
       }
     } catch (e) {
       print(e);
-      // Trate o erro, como exibir um SnackBar ou diálogo de erro
       setState(() {
         isLoading = false;
       });
@@ -76,56 +90,73 @@ class _TecnicosListScreenState extends State<TecnicosListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Técnicos')),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : tecnicos.isEmpty
-              ? Center(
-                  child: Text(
-                      'Nenhum técnico disponível.')) // mensagem para lista vazia
-              : ListView.builder(
-                  itemCount: tecnicos.length,
-                  itemBuilder: (context, index) {
-                    final tecnico = tecnicos[index];
-                    return Card(
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: _getStatusColor(tecnico.status),
-                          radius: 5,
-                        ),
-                        title: Text(
-                          tecnico.nome,
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 16,
+      body: Center(
+        // Centraliza o conteúdo
+        child: isLoading
+            ? CircularProgressIndicator()
+            : tecnicos.isEmpty
+                ? Text('Nenhum técnico disponível.')
+                : Container(
+                    constraints:
+                        BoxConstraints(maxWidth: 600), // Limita a largura
+                    child: ListView.builder(
+                      itemCount: tecnicos.length,
+                      itemBuilder: (context, index) {
+                        final tecnico = tecnicos[index];
+                        return Card(
+                          margin: EdgeInsets.symmetric(
+                              vertical: 8.0), // Espaçamento entre os cards
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.0),
                           ),
-                        ),
-                        subtitle: Text(
-                            'Chamados atribuídos: ${tecnico.chamadosAtribuidos}'),
-                        trailing: IconButton(
-                          icon: Icon(Icons.edit),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    EditTecnicoScreen(tecnico: tecnico),
-                              ),
-                            );
-                          },
-                        ),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  TecnicoChamadosScreen(tecnico: tecnico),
+                          elevation: 4,
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: _getStatusColor(tecnico.status),
+                              radius: 5,
                             ),
-                          );
-                        },
-                      ),
-                    );
-                  },
-                ),
+                            title: Text(
+                              tecnico.nome,
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold, // Destaca o nome
+                              ),
+                            ),
+                            subtitle: Text(
+                              'Chamados atribuídos: ${tecnico.chamadosAtribuidos}',
+                              style: TextStyle(
+                                color: Colors.black54,
+                                fontSize: 14,
+                              ),
+                            ),
+                            trailing: IconButton(
+                              icon: Icon(Icons.edit),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        EditTecnicoScreen(tecnico: tecnico),
+                                  ),
+                                );
+                              },
+                            ),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      TecnicoChamadosScreen(tecnico: tecnico),
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+      ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: () {

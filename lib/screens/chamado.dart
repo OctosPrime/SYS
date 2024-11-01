@@ -28,12 +28,38 @@ class _ChamadoState extends State<Chamado> {
       tecnico,
       status;
 
+  List<String> tecnicosDisponiveis = [];
+  bool isLoadingTecnicos = true;
+
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Criar chamado")),
-      body: _buildUI(),
-    );
+  void initState() {
+    super.initState();
+    fetchTecnicos();
+  }
+
+  Future<void> fetchTecnicos() async {
+    final url = Uri.parse(
+        'http://localhost:3000/api/tecnicos'); // Substitua pelo seu endpoint
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          tecnicosDisponiveis = data
+              .map((tecnico) => tecnico['nome'] as String)
+              .toList(); // Ajuste conforme o formato do seu JSON
+          isLoadingTecnicos = false;
+        });
+      } else {
+        throw Exception('Falha ao carregar técnicos disponíveis.');
+      }
+    } catch (e) {
+      print(e);
+      // Trate o erro, como exibir um SnackBar ou diálogo de erro
+      setState(() {
+        isLoadingTecnicos = false;
+      });
+    }
   }
 
   Future<bool> criarChamado(
@@ -77,6 +103,14 @@ class _ChamadoState extends State<Chamado> {
     } else {
       throw Exception('Erro ao criar chamado.');
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Criar chamado")),
+      body: _buildUI(),
+    );
   }
 
   Widget _buildUI() {
@@ -229,21 +263,24 @@ class _ChamadoState extends State<Chamado> {
                     });
                   },
                 ),
-                CustomDropdownField(
-                  hintText: 'Técnico/Engenheiro',
-                  items: ["Teste Um", "Teste Dois"],
-                  validator: (val) {
-                    if (val == null || val.isEmpty) {
-                      return 'Por favor, selecione uma opção';
-                    }
-                    return null;
-                  },
-                  onSaved: (val) {
-                    setState(() {
-                      tecnico = val;
-                    });
-                  },
-                ),
+                // Dropdown para selecionar técnicos
+                isLoadingTecnicos
+                    ? CircularProgressIndicator() // Carregando técnicos
+                    : CustomDropdownField(
+                        hintText: 'Técnico/Engenheiro',
+                        items: tecnicosDisponiveis,
+                        validator: (val) {
+                          if (val == null || val.isEmpty) {
+                            return 'Por favor, selecione uma opção';
+                          }
+                          return null;
+                        },
+                        onSaved: (val) {
+                          setState(() {
+                            tecnico = val;
+                          });
+                        },
+                      ),
                 CustomDropdownField(
                   hintText: 'Status',
                   items: ["Aberto", "Agendado", "Em Andamento", "Finalizado"],

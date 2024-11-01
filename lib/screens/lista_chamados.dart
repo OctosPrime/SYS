@@ -51,7 +51,7 @@ class ChamadoCriado {
 }
 
 class ChamadosListScreen extends StatefulWidget {
-  final Tecnico? tecnico;
+  final Tecnico? tecnico; // Mantém a referência ao técnico
 
   ChamadosListScreen({this.tecnico});
 
@@ -59,13 +59,29 @@ class ChamadosListScreen extends StatefulWidget {
   _ChamadosListScreenState createState() => _ChamadosListScreenState();
 }
 
-class _ChamadosListScreenState extends State<ChamadosListScreen> {
+class _ChamadosListScreenState extends State<ChamadosListScreen>
+    with SingleTickerProviderStateMixin {
   late Future<List<ChamadoCriado>> futurosChamados;
+  late TabController _tabController;
+  final List<String> _statuses = [
+    'Todos',
+    'Aberto',
+    'Em Andamento',
+    'Finalizado',
+    'Agendado'
+  ];
+  String _selectedStatus = 'Todos';
 
   @override
   void initState() {
     super.initState();
     futurosChamados = fetchChamados();
+    _tabController = TabController(length: _statuses.length, vsync: this);
+    _tabController.addListener(() {
+      setState(() {
+        _selectedStatus = _statuses[_tabController.index];
+      });
+    });
   }
 
   Future<List<ChamadoCriado>> fetchChamados() async {
@@ -74,6 +90,14 @@ class _ChamadosListScreenState extends State<ChamadosListScreen> {
 
     if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body);
+
+      // Filtrar por técnico, se necessário
+      if (widget.tecnico != null) {
+        jsonResponse = jsonResponse
+            .where((chamado) => chamado['tecnico'] == widget.tecnico!.nome)
+            .toList();
+      }
+
       return jsonResponse
           .map((chamado) => ChamadoCriado.fromJson(chamado))
           .toList();
@@ -95,120 +119,137 @@ class _ChamadosListScreenState extends State<ChamadosListScreen> {
             Navigator.pop(context, true); // Voltar e indicar atualização
           },
         ),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: _statuses.map((status) => Tab(text: status)).toList(),
+          indicatorColor: Colors.white,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+        ),
       ),
-      body: FutureBuilder<List<ChamadoCriado>>(
-        future: futurosChamados,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Erro: ${snapshot.error}'));
-          } else {
-            final List<ChamadoCriado> chamados = widget.tecnico == null
-                ? snapshot.data!
-                : snapshot.data!
-                    .where((chamado) => chamado.tecnico == widget.tecnico!.nome)
-                    .toList();
+      body: Center(
+        child: FutureBuilder<List<ChamadoCriado>>(
+          future: futurosChamados,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Erro: ${snapshot.error}'));
+            } else {
+              List<ChamadoCriado> chamados = snapshot.data!;
 
-            return ListView.builder(
-              itemCount: chamados.length,
-              itemBuilder: (context, index) {
-                final chamado = chamados[index];
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            ChamadoDetailScreen(chamado: chamado),
-                      ),
-                    );
-                  },
-                  child: Card(
-                    margin:
-                        EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    elevation: 4,
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
+              // Filtra os chamados de acordo com o status selecionado
+              if (_selectedStatus != 'Todos') {
+                chamados = chamados
+                    .where((chamado) => chamado.status == _selectedStatus)
+                    .toList();
+              }
+
+              return Container(
+                constraints: BoxConstraints(maxWidth: 600),
+                child: ListView.builder(
+                  itemCount: chamados.length,
+                  itemBuilder: (context, index) {
+                    final chamado = chamados[index];
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                ChamadoDetailScreen(chamado: chamado),
+                          ),
+                        );
+                      },
+                      child: Card(
+                        margin: EdgeInsets.symmetric(
+                            vertical: 8.0, horizontal: 16.0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                        elevation: 4,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(
-                                child: Text(
-                                  '${chamado.chamado} - ${chamado.cliente}',
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ),
                               Row(
-                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
-                                  CircleAvatar(
-                                    backgroundColor:
-                                        _getStatusColor(chamado.status),
-                                    radius: 5,
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    chamado.status,
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 16,
+                                  Expanded(
+                                    child: Text(
+                                      '${chamado.chamado} - ${chamado.cliente}',
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
                                     ),
                                   ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    chamado.tipo,
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      CircleAvatar(
+                                        backgroundColor:
+                                            _getStatusColor(chamado.status),
+                                        radius: 5,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        chamado.status,
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        chamado.tipo,
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
+                              SizedBox(height: 8),
+                              Text(
+                                'Técnico: ${chamado.tecnico}',
+                                style: TextStyle(
+                                  color: Colors.black54,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              Text(
+                                DateFormat('dd/MM/yyyy – HH:mm')
+                                    .format(chamado.dataHora),
+                                style: TextStyle(
+                                  color: Colors.black54,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              Text(
+                                chamado.endereco,
+                                style: TextStyle(
+                                  color: Colors.black54,
+                                  fontSize: 14,
+                                ),
+                              ),
                             ],
                           ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Técnico: ${chamado.tecnico}',
-                            style: TextStyle(
-                              color: Colors.black54,
-                              fontSize: 14,
-                            ),
-                          ),
-                          Text(
-                            DateFormat('dd/MM/yyyy – HH:mm')
-                                .format(chamado.dataHora),
-                            style: TextStyle(
-                              color: Colors.black54,
-                              fontSize: 14,
-                            ),
-                          ),
-                          Text(
-                            chamado.endereco,
-                            style: TextStyle(
-                              color: Colors.black54,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-                );
-              },
-            );
-          }
-        },
+                    );
+                  },
+                ),
+              );
+            }
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
@@ -217,7 +258,7 @@ class _ChamadosListScreenState extends State<ChamadosListScreen> {
                 context,
                 MaterialPageRoute(builder: (context) => Chamado()),
               ) ??
-              false; // Padrão para false caso não retorne nada
+              false;
 
           if (shouldRefresh) {
             setState(() {
@@ -237,6 +278,8 @@ class _ChamadosListScreenState extends State<ChamadosListScreen> {
         return Colors.orange;
       case 'Finalizado':
         return Colors.red;
+      case 'Agendado':
+        return Colors.blue;
       default:
         return Colors.grey;
     }
