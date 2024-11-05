@@ -48,9 +48,10 @@ class _TecnicosListScreenState extends State<TecnicosListScreen> {
   }
 
   Future<void> fetchTecnicos() async {
-    final url = Uri.parse('http://localhost:3000/api/tecnicos');
+    final url = Uri.parse('http://localhost/databases/get-tecnicos.php');
     try {
       final response = await http.get(url);
+
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
 
@@ -58,7 +59,7 @@ class _TecnicosListScreenState extends State<TecnicosListScreen> {
           // Buscando os chamados atribuídos para cada técnico
           final chamadosResponse = await http.get(
             Uri.parse(
-                'http://localhost:3000/api/chamados/${tecnicoJson['nome']}'),
+                'http://localhost/databases/get-chamados-tecnico.php?tecnico=${Uri.encodeComponent(tecnicoJson['nome'])}'),
           );
 
           if (chamadosResponse.statusCode == 200) {
@@ -124,7 +125,7 @@ class _TecnicosListScreenState extends State<TecnicosListScreen> {
                               ),
                             ),
                             subtitle: Text(
-                              'Chamados atribuídos: ${tecnico.chamadosAtribuidos}',
+                              '${tecnico.status} - Chamados atribuídos: ${tecnico.chamadosAtribuidos}',
                               style: TextStyle(
                                 color: Colors.black54,
                                 fontSize: 14,

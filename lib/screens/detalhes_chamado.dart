@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sys/screens/lista_chamados.dart';
-//mport 'package:url_launcher/url_launcher.dart'; // Certifique-se de que está importado
+//import 'package:url_launcher/url_launcher.dart'; // Certifique-se de que está importado
 import 'package:sys/screens/edit_chamado.dart';
 
 class ChamadoDetailScreen extends StatelessWidget {
@@ -44,13 +44,17 @@ class ChamadoDetailScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.edit),
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          bool? shouldRefresh = await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => EditChamadoScreen(chamado: chamado),
+              builder: (context) => EditarChamadoScreen(chamado: chamado),
             ),
           );
+
+          if (shouldRefresh == true) {
+            Navigator.pop(context, true); // Voltar e indicar atualização
+          }
         },
       ),
     );

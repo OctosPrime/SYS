@@ -7,6 +7,7 @@ import 'package:sys/screens/detalhes_chamado.dart';
 import 'package:sys/screens/exibir_tec.dart';
 
 class ChamadoCriado {
+  int id;
   String tipo;
   String chamado;
   String cliente;
@@ -20,6 +21,7 @@ class ChamadoCriado {
   String status;
 
   ChamadoCriado({
+    required this.id,
     required this.tipo,
     required this.chamado,
     required this.cliente,
@@ -35,6 +37,7 @@ class ChamadoCriado {
 
   factory ChamadoCriado.fromJson(Map<String, dynamic> json) {
     return ChamadoCriado(
+      id: json['id'],
       tipo: json['tipo'],
       chamado: json['chamado'],
       cliente: json['cliente'],
@@ -48,10 +51,27 @@ class ChamadoCriado {
       status: json['status'],
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'tipo': tipo,
+      'chamado': chamado,
+      'cliente': cliente,
+      'equipamento': equipamento,
+      'data': dataHora.toIso8601String(),
+      'endereco': endereco,
+      'celular': celular,
+      'link': link,
+      'observacao': observacao,
+      'tecnico': tecnico,
+      'status': status,
+    };
+  }
 }
 
 class ChamadosListScreen extends StatefulWidget {
-  final Tecnico? tecnico; // Mantém a referência ao técnico
+  final Tecnico? tecnico;
 
   ChamadosListScreen({this.tecnico});
 
@@ -62,20 +82,22 @@ class ChamadosListScreen extends StatefulWidget {
 class _ChamadosListScreenState extends State<ChamadosListScreen>
     with SingleTickerProviderStateMixin {
   late Future<List<ChamadoCriado>> futurosChamados;
+  late Future<List<String>> futurosTecnicos;
   late TabController _tabController;
   final List<String> _statuses = [
     'Todos',
     'Aberto',
     'Em Andamento',
-    'Finalizado',
-    'Agendado'
+    'Finalizado'
   ];
+  final List<String> _tipos = ['Contrato', 'Avulso'];
   String _selectedStatus = 'Todos';
 
   @override
   void initState() {
     super.initState();
     futurosChamados = fetchChamados();
+    futurosTecnicos = fetchTecnicos();
     _tabController = TabController(length: _statuses.length, vsync: this);
     _tabController.addListener(() {
       setState(() {
@@ -85,13 +107,12 @@ class _ChamadosListScreenState extends State<ChamadosListScreen>
   }
 
   Future<List<ChamadoCriado>> fetchChamados() async {
-    final response =
-        await http.get(Uri.parse('http://localhost:3000/chamados'));
+    final response = await http
+        .get(Uri.parse('http://localhost/databases/get-chamados.php'));
 
     if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body);
 
-      // Filtrar por técnico, se necessário
       if (widget.tecnico != null) {
         jsonResponse = jsonResponse
             .where((chamado) => chamado['tecnico'] == widget.tecnico!.nome)
@@ -106,6 +127,18 @@ class _ChamadosListScreenState extends State<ChamadosListScreen>
     }
   }
 
+  Future<List<String>> fetchTecnicos() async {
+    final response = await http
+        .get(Uri.parse('http://localhost/databases/get-tecnicos.php'));
+
+    if (response.statusCode == 200) {
+      List jsonResponse = json.decode(response.body);
+      return jsonResponse.map<String>((tec) => tec['nome'].toString()).toList();
+    } else {
+      throw Exception('Falha ao carregar técnicos');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -116,15 +149,15 @@ class _ChamadosListScreenState extends State<ChamadosListScreen>
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pop(context, true); // Voltar e indicar atualização
+            Navigator.pop(context, true);
           },
         ),
         bottom: TabBar(
           controller: _tabController,
           tabs: _statuses.map((status) => Tab(text: status)).toList(),
-          indicatorColor: Colors.white,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
+          indicatorColor: Colors.black,
+          labelColor: Colors.black,
+          unselectedLabelColor: Colors.black,
         ),
       ),
       body: Center(
@@ -138,7 +171,6 @@ class _ChamadosListScreenState extends State<ChamadosListScreen>
             } else {
               List<ChamadoCriado> chamados = snapshot.data!;
 
-              // Filtra os chamados de acordo com o status selecionado
               if (_selectedStatus != 'Todos') {
                 chamados = chamados
                     .where((chamado) => chamado.status == _selectedStatus)
@@ -152,14 +184,21 @@ class _ChamadosListScreenState extends State<ChamadosListScreen>
                   itemBuilder: (context, index) {
                     final chamado = chamados[index];
                     return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
+                      onTap: () async {
+                        // Busque a lista de técnicos antes de navegar
+                        List<String> futurosTecnicos = await fetchTecnicos();
+                        bool? shouldRefresh = await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) =>
                                 ChamadoDetailScreen(chamado: chamado),
                           ),
                         );
+                        if (shouldRefresh == true) {
+                          setState(() {
+                            futurosChamados = fetchChamados();
+                          });
+                        }
                       },
                       child: Card(
                         margin: EdgeInsets.symmetric(
@@ -251,19 +290,39 @@ class _ChamadosListScreenState extends State<ChamadosListScreen>
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
-        onPressed: () async {
-          bool shouldRefresh = await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => Chamado()),
-              ) ??
-              false;
+      floatingActionButton: FutureBuilder<List<String>>(
+        future: futurosTecnicos,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return FloatingActionButton(
+              child: CircularProgressIndicator(),
+              onPressed: () {},
+            );
+          } else if (snapshot.hasError) {
+            return FloatingActionButton(
+              child: Icon(Icons.error),
+              onPressed: () {},
+            );
+          } else {
+            return FloatingActionButton(
+              child: Icon(Icons.add),
+              onPressed: () async {
+                bool shouldRefresh = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => Chamado(
+                      futurosTecnicos: futurosTecnicos,
+                    ),
+                  ),
+                );
 
-          if (shouldRefresh) {
-            setState(() {
-              futurosChamados = fetchChamados(); // Atualiza a lista de chamados
-            });
+                if (shouldRefresh) {
+                  setState(() {
+                    futurosChamados = fetchChamados();
+                  });
+                }
+              },
+            );
           }
         },
       ),

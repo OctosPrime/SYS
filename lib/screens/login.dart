@@ -27,20 +27,20 @@ class _LoginState extends State<Login> {
 
   Future<bool> verificarCredenciais(String email, String senha) async {
     final url = Uri.parse(
-        'http://localhost:3000/verificar-credenciais'); // 10.0.2.2:3000 para teste Android
+        'http://localhost/databases/verificar-credenciais.php'); // 10.0.2.2:3000 para teste Android
     final response = await http.post(
       url,
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET,PUT,PATCH,POST,DELETE'
       },
       body: json.encode({'email': email, 'senha': senha}),
     );
 
     if (response.statusCode == 200) {
+      print(
+          'Response body: ${response.body}'); // Adicione esta linha para depurar
       final responseBody = json.decode(response.body);
-      return responseBody['success'];
+      return responseBody['success'] == true;
     } else {
       throw Exception('Erro ao verificar credenciais');
     }

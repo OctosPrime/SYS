@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 import 'package:sys/screens/exibir_tec.dart';
 
 class EditTecnicoScreen extends StatefulWidget {
@@ -14,8 +17,8 @@ class _EditTecnicoScreenState extends State<EditTecnicoScreen> {
   late TextEditingController _nomeController;
   late TextEditingController _emailController;
   late TextEditingController _celularController;
-  late TextEditingController _statusController;
-  late TextEditingController _chamadosAtribuidosController;
+  //late TextEditingController _statusController;
+  //late TextEditingController _chamadosAtribuidosController;
 
   @override
   void initState() {
@@ -23,9 +26,45 @@ class _EditTecnicoScreenState extends State<EditTecnicoScreen> {
     _nomeController = TextEditingController(text: widget.tecnico.nome);
     _emailController = TextEditingController(text: widget.tecnico.email);
     _celularController = TextEditingController(text: widget.tecnico.celular);
-    _statusController = TextEditingController(text: widget.tecnico.status);
-    _chamadosAtribuidosController = TextEditingController(
-        text: widget.tecnico.chamadosAtribuidos.toString());
+    //_statusController = TextEditingController(text: widget.tecnico.status);
+    //_chamadosAtribuidosController = TextEditingController(
+    //text: widget.tecnico.chamadosAtribuidos.toString());
+  }
+
+  Future<void> _salvarTecnico() async {
+    final url = Uri.parse(
+        'http://localhost/databases/atualizar-tecnico/${widget.tecnico.nome}');
+    final response = await http.put(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'nome': _nomeController.text,
+        'email': _emailController.text,
+        'celular': _celularController.text,
+        //'status': _statusController.text,
+        //'chamadosAtribuidos': int.parse(_chamadosAtribuidosController.text),
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      Navigator.pop(context, true);
+    } else {
+      // Handle error
+      print('Failed to update tecnico');
+    }
+  }
+
+  Future<void> _excluirTecnico() async {
+    final url = Uri.parse(
+        'http://localhost/databases/deletar-tecnico/${widget.tecnico.nome}');
+    final response = await http.delete(url);
+
+    if (response.statusCode == 200) {
+      Navigator.pop(context, true);
+    } else {
+      // Handle error
+      print('Failed to delete tecnico');
+    }
   }
 
   @override
@@ -49,30 +88,27 @@ class _EditTecnicoScreenState extends State<EditTecnicoScreen> {
                 controller: _celularController,
                 decoration: InputDecoration(labelText: 'Celular'),
               ),
-              TextFormField(
-                controller: _statusController,
-                decoration: InputDecoration(labelText: 'Status'),
-              ),
-              TextFormField(
-                controller: _chamadosAtribuidosController,
-                decoration: InputDecoration(labelText: 'Chamados Atribuídos'),
-                keyboardType: TextInputType.number,
-              ),
+              // TextFormField(
+              //   controller: _statusController,
+              //   decoration: InputDecoration(labelText: 'Status'),
+              // ),
+              // TextFormField(
+              //   controller: _chamadosAtribuidosController,
+              //   decoration: InputDecoration(labelText: 'Chamados Atribuídos'),
+              //   keyboardType: TextInputType.number,
+              // ),
               SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
-                  // Atualizar os dados do técnico
-                  setState(() {
-                    widget.tecnico.nome = _nomeController.text;
-                    widget.tecnico.email = _emailController.text;
-                    widget.tecnico.celular = _celularController.text;
-                    widget.tecnico.status = _statusController.text;
-                    widget.tecnico.chamadosAtribuidos =
-                        int.parse(_chamadosAtribuidosController.text);
-                  });
-                  Navigator.pop(context);
-                },
+                onPressed: _salvarTecnico,
                 child: Text('Salvar'),
+              ),
+              SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: _excluirTecnico,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red, // Background color
+                ),
+                child: Text('Excluir Técnico'),
               ),
             ],
           ),
@@ -86,8 +122,8 @@ class _EditTecnicoScreenState extends State<EditTecnicoScreen> {
     _nomeController.dispose();
     _emailController.dispose();
     _celularController.dispose();
-    _statusController.dispose();
-    _chamadosAtribuidosController.dispose();
+    // _statusController.dispose();
+    //_chamadosAtribuidosController.dispose();
     super.dispose();
   }
 }

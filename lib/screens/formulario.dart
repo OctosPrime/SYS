@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:sys/databases/db.dart';
-//import 'package:sys/databases/db.dart';
-import 'package:sys/utils/extensions.dart';
-import 'package:sys/widgets/custom_form_field.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:sys/screens/exibir_tec.dart';
 
 class Register extends StatefulWidget {
@@ -17,27 +15,52 @@ class _MyWidgetState extends State<Register> {
 
   String? nome, email, celular, senha;
 
+  Future<void> inserirUsuario(
+      String nome, String email, String celular, String senha) async {
+    final url = Uri.parse('http://localhost:3000/api/tecnicos');
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'nome': nome,
+        'email': email,
+        'celular': celular,
+        'senha': senha,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      // Supondo que a API retorna o ID do técnico criado
+      final data = json.decode(response.body);
+      final id = data['id'];
+      // Aqui você pode navegar para a lista de técnicos ou fazer outra ação
+    } else {
+      // Lide com o erro
+      print('Falha ao criar técnico');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: const Text("Register")), body: _buildUI());
+      appBar: AppBar(title: const Text("Registrar Técnico")),
+      body: _buildUI(),
+    );
   }
 
   Widget _buildUI() {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(
-          10.0,
-        ),
+        padding: const EdgeInsets.all(10.0),
         child: Form(
           key: _formKey,
           child: Column(
             children: [
-              CustomFormField(
-                hintText: 'Nome',
+              TextFormField(
+                decoration: InputDecoration(labelText: 'Nome'),
                 validator: (val) {
-                  if (!val!.isValidName) {
-                    return 'Coloque um nome válido (Primeira letra precisa ser maiúscula).';
+                  if (val == null || val.isEmpty) {
+                    return 'Coloque um nome válido.';
                   }
                   return null;
                 },
@@ -47,10 +70,11 @@ class _MyWidgetState extends State<Register> {
                   });
                 },
               ),
-              CustomFormField(
-                hintText: 'Email',
+              TextFormField(
+                decoration: InputDecoration(labelText: 'Email'),
                 validator: (val) {
-                  if (!val!.isValidEmail) {
+                  if (val == null ||
+                      !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(val)) {
                     return 'Coloque um email válido.';
                   }
                   return null;
@@ -61,10 +85,11 @@ class _MyWidgetState extends State<Register> {
                   });
                 },
               ),
-              CustomFormField(
-                hintText: 'Celular',
+              TextFormField(
+                decoration: InputDecoration(labelText: 'Celular'),
                 validator: (val) {
-                  if (!val!.isValidPhone) {
+                  if (val == null ||
+                      !RegExp(r'^\+?[1-9]\d{1,14}$').hasMatch(val)) {
                     return 'Coloque um número válido.';
                   }
                   return null;
@@ -75,11 +100,11 @@ class _MyWidgetState extends State<Register> {
                   });
                 },
               ),
-              CustomFormField(
-                hintText: 'Password',
+              TextFormField(
+                decoration: InputDecoration(labelText: 'Senha'),
                 obscureText: true,
                 validator: (val) {
-                  if (!val!.isValidPassword) {
+                  if (val == null || val.length < 6) {
                     return 'Coloque uma senha válida.';
                   }
                   return null;
@@ -94,17 +119,11 @@ class _MyWidgetState extends State<Register> {
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
-                    inserirUsuario("$nome", "$email", "$celular", "$senha");
-
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => TecnicosListScreen()));
+                    inserirUsuario(nome!, email!, celular!, senha!);
+                    Navigator.pop(context, true); // Retornar à tela anterior
                   }
                 },
-                child: const Text(
-                  'Register',
-                ),
+                child: const Text('Registrar'),
               ),
             ],
           ),

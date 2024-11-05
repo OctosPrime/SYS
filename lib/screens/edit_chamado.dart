@@ -1,126 +1,242 @@
 import 'package:flutter/material.dart';
 import 'package:sys/screens/lista_chamados.dart';
+import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-class EditChamadoScreen extends StatefulWidget {
+class EditarChamadoScreen extends StatefulWidget {
   final ChamadoCriado chamado;
 
-  EditChamadoScreen({required this.chamado});
+  EditarChamadoScreen({required this.chamado});
 
   @override
-  _EditChamadoScreenState createState() => _EditChamadoScreenState();
+  _EditarChamadoScreenState createState() => _EditarChamadoScreenState();
 }
 
-class _EditChamadoScreenState extends State<EditChamadoScreen> {
-  late TextEditingController _tipoController;
-  late TextEditingController _chamadoController;
+class _EditarChamadoScreenState extends State<EditarChamadoScreen> {
+  final _formKey = GlobalKey<FormState>();
   late TextEditingController _clienteController;
   late TextEditingController _equipamentoController;
-  late TextEditingController _dataHoraController;
   late TextEditingController _enderecoController;
   late TextEditingController _celularController;
   late TextEditingController _linkController;
   late TextEditingController _observacaoController;
-  late TextEditingController _tecnicoController;
-  late TextEditingController _statusController;
+  late TextEditingController _dataHoraController;
+  late TextEditingController _chamadoController;
+
+  String _tipo = 'Contrato';
+  String _status = 'Aberto';
+  String _tecnico = '';
+  List<String> _tecnicos = [];
 
   @override
   void initState() {
     super.initState();
-    _tipoController = TextEditingController(text: widget.chamado.tipo);
-    _chamadoController = TextEditingController(text: widget.chamado.chamado);
     _clienteController = TextEditingController(text: widget.chamado.cliente);
     _equipamentoController =
         TextEditingController(text: widget.chamado.equipamento);
-    _dataHoraController =
-        TextEditingController(text: widget.chamado.dataHora.toString());
     _enderecoController = TextEditingController(text: widget.chamado.endereco);
     _celularController = TextEditingController(text: widget.chamado.celular);
     _linkController = TextEditingController(text: widget.chamado.link);
     _observacaoController =
         TextEditingController(text: widget.chamado.observacao);
-    _tecnicoController = TextEditingController(text: widget.chamado.tecnico);
-    _statusController = TextEditingController(text: widget.chamado.status);
+    _dataHoraController = TextEditingController(
+        text: DateFormat('dd/MM/yyyy – HH:mm').format(widget.chamado.dataHora));
+
+    _tipo = widget.chamado.tipo;
+    _status = widget.chamado.status;
+    _chamadoController = TextEditingController(text: widget.chamado.chamado);
+    _tecnico = widget.chamado.tecnico;
+
+    fetchTecnicos();
+  }
+
+  Future<void> fetchTecnicos() async {
+    final response = await http
+        .get(Uri.parse('http://localhost/databases/get-tecnicos.php'));
+
+    if (response.statusCode == 200) {
+      try {
+        final List<dynamic> jsonList = json.decode(response.body);
+        setState(() {
+          _tecnicos = jsonList.map((item) => item['nome'].toString()).toList();
+          if (!_tecnicos.contains(_tecnico)) {
+            _tecnicos.add(_tecnico);
+          }
+        });
+      } catch (e) {
+        print('Erro ao decodificar JSON: $e');
+        throw Exception('Erro ao processar a resposta do servidor');
+      }
+    } else {
+      throw Exception('Falha ao carregar técnicos');
+    }
+  }
+
+  Future<void> _updateChamado() async {
+    final url = Uri.parse(
+        'http://localhost/databases/update-chamado.php?id=${widget.chamado.id}');
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      body: json.encode({
+        'cliente': _clienteController.text,
+        'equipamento': _equipamentoController.text,
+        'endereco': _enderecoController.text,
+        'celular': _celularController.text,
+        'link': _linkController.text,
+        'observacao': _observacaoController.text,
+        'data': _dataHoraController.text,
+        'tipo': _tipo,
+        'status': _status,
+        'chamado': _chamadoController.text,
+        'tecnico': _tecnico,
+      }),
+    );
+
+    print('Status code: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      try {
+        final jsonResponse = json.decode(response.body);
+        if (jsonResponse['success']) {
+          Navigator.pop(context, true);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(
+                    'Erro ao atualizar chamado: ${jsonResponse['error']}')),
+          );
+        }
+      } catch (e) {
+        print('Erro ao decodificar JSON: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao processar resposta do servidor')),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao atualizar chamado')),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _clienteController.dispose();
+    _equipamentoController.dispose();
+    _enderecoController.dispose();
+    _celularController.dispose();
+    _linkController.dispose();
+    _observacaoController.dispose();
+    _dataHoraController.dispose();
+    _chamadoController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Editar Chamado')),
+      appBar: AppBar(
+        title: Text('Editar Chamado'),
+        centerTitle: true,
+      ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: ListView(
-          children: [
-            TextField(
-                controller: _tipoController,
-                decoration: InputDecoration(labelText: 'Tipo')),
-            TextField(
-                controller: _chamadoController,
-                decoration: InputDecoration(labelText: 'Chamado')),
-            TextField(
-                controller: _clienteController,
-                decoration: InputDecoration(labelText: 'Cliente')),
-            TextField(
-                controller: _equipamentoController,
-                decoration: InputDecoration(labelText: 'Equipamento')),
-            TextField(
-                controller: _dataHoraController,
-                decoration: InputDecoration(labelText: 'Data/Hora')),
-            TextField(
-                controller: _enderecoController,
-                decoration: InputDecoration(labelText: 'Endereço')),
-            TextField(
-                controller: _celularController,
-                decoration: InputDecoration(labelText: 'Celular')),
-            TextField(
-                controller: _linkController,
-                decoration: InputDecoration(labelText: 'Link Maps')),
-            TextField(
-                controller: _observacaoController,
-                decoration: InputDecoration(labelText: 'Observação')),
-            TextField(
-                controller: _tecnicoController,
-                decoration: InputDecoration(labelText: 'Técnico')),
-            TextField(
-                controller: _statusController,
-                decoration: InputDecoration(labelText: 'Status')),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  widget.chamado.tipo = _tipoController.text;
-                  widget.chamado.chamado = _chamadoController.text;
-                  widget.chamado.cliente = _clienteController.text;
-                  widget.chamado.equipamento = _equipamentoController.text;
-                  widget.chamado.dataHora =
-                      DateTime.parse(_dataHoraController.text);
-                  widget.chamado.endereco = _enderecoController.text;
-                  widget.chamado.celular = _celularController.text;
-                  widget.chamado.observacao = _observacaoController.text;
-                  widget.chamado.tecnico = _tecnicoController.text;
-                  widget.chamado.status = _statusController.text;
-                });
-                Navigator.pop(context);
-              },
-              child: Text('Salvar'),
+        padding: const EdgeInsets.all(16.0),
+        child: SingleChildScrollView(
+          child: Container(
+            constraints:
+                BoxConstraints(maxWidth: 600), // Limita a largura máxima
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildTextField(_clienteController, 'Cliente'),
+                  _buildTextField(_chamadoController, "Chamado"),
+                  _buildTextField(_equipamentoController, 'Equipamento'),
+                  _buildTextField(_enderecoController, 'Endereço'),
+                  _buildTextField(_celularController, 'Celular'),
+                  _buildTextField(_linkController, 'Link Maps'),
+                  _buildTextField(_observacaoController, 'Observação'),
+                  _buildTextField(_dataHoraController, 'Data/Hora'),
+                  _buildDropdown('Tipo', ['Contrato', 'Avulso'], _tipo,
+                      (value) {
+                    setState(() {
+                      _tipo = value!;
+                    });
+                  }),
+                  _buildDropdown(
+                      'Status',
+                      ['Aberto', 'Em Andamento', 'Finalizado'],
+                      _status, (value) {
+                    setState(() {
+                      _status = value!;
+                    });
+                  }),
+                  _buildDropdown('Técnico', _tecnicos, _tecnico, (value) {
+                    setState(() {
+                      _tecnico = value!;
+                    });
+                  }),
+                  SizedBox(height: 20),
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          _updateChamado(); // Chama a função para atualizar o chamado
+                        }
+                      },
+                      child: Text('Salvar'),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  @override
-  void dispose() {
-    _tipoController.dispose();
-    _chamadoController.dispose();
-    _clienteController.dispose();
-    _equipamentoController.dispose();
-    _dataHoraController.dispose();
-    _enderecoController.dispose();
-    _celularController.dispose();
-    _observacaoController.dispose();
-    _tecnicoController.dispose();
-    _statusController.dispose();
-    super.dispose();
+  Widget _buildTextField(TextEditingController controller, String label) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(),
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Por favor, insira $label';
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
+  Widget _buildDropdown(String label, List<String> items, String value,
+      ValueChanged<String?> onChanged) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: DropdownButtonFormField<String>(
+        value: value,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(),
+        ),
+        items: items.map<DropdownMenuItem<String>>((String value) {
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Text(value),
+          );
+        }).toList(),
+        onChanged: onChanged,
+      ),
+    );
   }
 }

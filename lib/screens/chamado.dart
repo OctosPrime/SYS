@@ -6,7 +6,7 @@ import 'package:sys/utils/extensions.dart';
 import 'package:sys/widgets/custom_form_field.dart';
 
 class Chamado extends StatefulWidget {
-  const Chamado({super.key});
+  const Chamado({super.key, required Future<List<String>> futurosTecnicos});
 
   @override
   State<Chamado> createState() => _ChamadoState();
@@ -37,9 +37,10 @@ class _ChamadoState extends State<Chamado> {
     fetchTecnicos();
   }
 
+  String? tecnicoId;
   Future<void> fetchTecnicos() async {
     final url = Uri.parse(
-        'http://localhost:3000/api/tecnicos'); // Substitua pelo seu endpoint
+        'http://localhost/databases/get-tecnicos.php'); // Substitua pelo seu endpoint
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -74,13 +75,11 @@ class _ChamadoState extends State<Chamado> {
       String observacao,
       String tecnico,
       String status) async {
-    final url = Uri.parse('http://localhost:3000/criar-chamado');
+    final url = Uri.parse('http://localhost/databases/criar-chamado.php');
     final response = await http.post(
       url,
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET,PUT,PATCH,POST,DELETE"
       },
       body: json.encode({
         'tipo': tipo,
