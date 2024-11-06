@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sys/screens/chamado.dart';
 import 'package:sys/screens/detalhes_chamado.dart';
 import 'package:sys/screens/exibir_tec.dart';
@@ -83,6 +84,7 @@ class _ChamadosListScreenState extends State<ChamadosListScreen>
     with SingleTickerProviderStateMixin {
   late Future<List<ChamadoCriado>> futurosChamados;
   late Future<List<String>> futurosTecnicos;
+  late int? usuarioId;
   late TabController _tabController;
   final List<String> _statuses = [
     'Todos',
@@ -107,18 +109,28 @@ class _ChamadosListScreenState extends State<ChamadosListScreen>
   }
 
   Future<List<ChamadoCriado>> fetchChamados() async {
-    final response = await http
-        .get(Uri.parse('http://localhost/databases/get-chamados.php'));
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool isAdmin = prefs.getBool('isAdmin') ?? false;
+    int? userId = prefs.getInt('userId');
+    usuarioId = prefs.getInt('userId');
+
+    // Log para depuração
+    print("isAdmin: $isAdmin, userId: $userId");
+
+    // Construa o corpo da requisição
+    Map<String, dynamic> body = {
+      'isAdmin': isAdmin,
+      'userId': userId,
+    };
+
+    final response = await http.post(
+      Uri.parse('http://localhost/databases/get-chamados.php'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(body),
+    );
 
     if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body);
-
-      if (widget.tecnico != null) {
-        jsonResponse = jsonResponse
-            .where((chamado) => chamado['tecnico'] == widget.tecnico!.nome)
-            .toList();
-      }
-
       return jsonResponse
           .map((chamado) => ChamadoCriado.fromJson(chamado))
           .toList();
@@ -306,22 +318,26 @@ class _ChamadosListScreenState extends State<ChamadosListScreen>
           } else {
             return FloatingActionButton(
               child: Icon(Icons.add),
-              onPressed: () async {
-                bool shouldRefresh = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => Chamado(
-                      futurosTecnicos: futurosTecnicos,
-                    ),
-                  ),
-                );
+              onPressed: usuarioId == null
+                  ? null
+                  : () async {
+                      bool shouldRefresh = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Chamado(
+                            futurosTecnicos: futurosTecnicos,
+                            usuarioId:
+                                usuarioId!, // Passando o parâmetro usuarioId
+                          ),
+                        ),
+                      );
 
-                if (shouldRefresh) {
-                  setState(() {
-                    futurosChamados = fetchChamados();
-                  });
-                }
-              },
+                      if (shouldRefresh) {
+                        setState(() {
+                          futurosChamados = fetchChamados();
+                        });
+                      }
+                    },
             );
           }
         },

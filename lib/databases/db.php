@@ -31,20 +31,22 @@ function checkOrCreateTables($db)
 
     $createChamadosTable = "
         CREATE TABLE IF NOT EXISTS chamados (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            tipo VARCHAR(50) NOT NULL,
-            chamado VARCHAR(50) UNIQUE NOT NULL,
-            cliente VARCHAR(50) NOT NULL,
-            equipamento VARCHAR(100) NOT NULL,
-            data DATETIME,
-            endereco VARCHAR(100) NOT NULL,
-            celular VARCHAR(11) NOT NULL,
-            link VARCHAR(150),
-            observacao VARCHAR(200),
-            tecnico VARCHAR(100) NOT NULL,
-            status VARCHAR(50) NOT NULL
-        );
-    ";
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        tipo VARCHAR(50) NOT NULL,
+        chamado VARCHAR(50) UNIQUE NOT NULL,
+        cliente VARCHAR(50) NOT NULL,
+        equipamento VARCHAR(100) NOT NULL,
+        data DATETIME,
+        endereco VARCHAR(100) NOT NULL,
+        celular VARCHAR(11) NOT NULL,
+        link VARCHAR(150),
+        observacao VARCHAR(200),
+        tecnico VARCHAR(100) NOT NULL,
+        status VARCHAR(50) NOT NULL,
+        usuario_id INT(11) NOT NULL,
+        FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+    );
+";
 
     $db->exec($createUsersTable);
     $db->exec($createChamadosTable);
