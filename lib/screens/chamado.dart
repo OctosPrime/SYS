@@ -32,9 +32,9 @@ class _ChamadoState extends State<Chamado> {
       observacao,
       tecnico,
       status;
+  late int usuarioId;
 
-  List<Map<String, dynamic>> tecnicosDisponiveis =
-      []; // Lista de técnicos com id e nome
+  List<Map<String, dynamic>> tecnicosDisponiveis = [];
   bool isLoadingTecnicos = true;
 
   @override
@@ -44,7 +44,6 @@ class _ChamadoState extends State<Chamado> {
   }
 
   Future<void> fetchTecnicos() async {
-    // Pegue o userId e isAdmin de SharedPreferences ou de onde você estiver armazenando esses valores.
     SharedPreferences prefs = await SharedPreferences.getInstance();
     int? userId = prefs.getInt('userId');
     bool isAdmin = prefs.getBool('isAdmin') ?? false;
@@ -65,7 +64,10 @@ class _ChamadoState extends State<Chamado> {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
           tecnicosDisponiveis = data
-              .map((tecnico) => {'id': tecnico['id'], 'nome': tecnico['nome']})
+              .map((tecnico) => {
+                    'id': tecnico['id'], // Armazenando o ID
+                    'nome': tecnico['nome'], // Armazenando o nome
+                  })
               .toList();
           isLoadingTecnicos = false;
         });
@@ -299,11 +301,14 @@ class _ChamadoState extends State<Chamado> {
                         },
                         onSaved: (val) {
                           setState(() {
-                            // Obtém o técnico selecionado e seu id correspondente
-                            tecnico = val;
+                            tecnico = val; // Armazenando o nome do técnico
+                            usuarioId = tecnicosDisponiveis.firstWhere(
+                                    (tecnico) => tecnico['nome'] == val)[
+                                'id']; // Armazenando o ID do técnico
                           });
                         },
                       ),
+
                 CustomDropdownField(
                   hintText: 'Status',
                   items: ["Aberto", "Agendado", "Em Andamento", "Finalizado"],
@@ -328,24 +333,20 @@ class _ChamadoState extends State<Chamado> {
                       DateFormat dateFormat = DateFormat("dd/MM/yyyy hh:mm a");
                       DateTime dateTime = dateFormat.parse(dateString, true);
 
-                      // Envia o ID do técnico selecionado
-                      int tecnicoId = tecnicosDisponiveis.firstWhere(
-                          (tecnico) => tecnico['nome'] == tecnico)['id'];
-
                       criarChamado(
-                              "$tipo",
-                              "$chamado",
-                              "$cliente",
-                              "$equipamento",
-                              dateTime,
-                              "$endereco",
-                              "$celular",
-                              "$link",
-                              "$observacao",
-                              "$tecnico",
-                              "$status",
-                              tecnicoId) // Usa o ID do técnico
-                          .then((success) {
+                        "$tipo",
+                        "$chamado",
+                        "$cliente",
+                        "$equipamento",
+                        dateTime,
+                        "$endereco",
+                        "$celular",
+                        "$link",
+                        "$observacao",
+                        "$tecnico", // Agora é o nome do técnico
+                        "$status",
+                        usuarioId, // Agora é o ID do técnico
+                      ).then((success) {
                         if (success) {
                           Navigator.pop(context,
                               true); // Retorna true para atualizar a lista
