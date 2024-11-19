@@ -4,17 +4,36 @@ import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sys/screens/login.dart';
+import 'package:http/http.dart' as http;
 import 'package:sys/screens/pag_inicial.dart';
 
 //import 'package:sys/screens/login.dart';
-void main() {
-  //WidgetsFlutterBinding.ensureInitialized();
+void main() async {
   runApp(MyApp());
+  chamarPHP();
   //verificarOuCriarTabela().then((_) {
   // Outros códigos de inicialização
   // });
   // criarTabelaChamado().then((_) {});
   // buscarDados();
+}
+
+Future<void> chamarPHP() async {
+  final url = Uri.parse(
+      'http://localhost/databases/db.php'); // Substitua com o URL do seu servidor
+
+  try {
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      // Se a requisição for bem-sucedida
+      print('Resposta do PHP: ${response.body}');
+    } else {
+      print('Erro ao chamar o PHP: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Erro de rede: $e');
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -26,7 +45,6 @@ class MyApp extends StatelessWidget {
   //   await db.connect();
   //   await db.createTable();
   // }
-
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(

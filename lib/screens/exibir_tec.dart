@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:sys/screens/edit_tec.dart';
 import 'package:sys/screens/formulario.dart';
 import 'package:sys/screens/tec_chamados.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Tecnico {
   String nome;
@@ -40,17 +41,31 @@ class TecnicosListScreen extends StatefulWidget {
 class _TecnicosListScreenState extends State<TecnicosListScreen> {
   List<Tecnico> tecnicos = [];
   bool isLoading = true;
+  bool isAdmin = false;
+  int userId = 0;
 
   @override
   void initState() {
     super.initState();
-    fetchTecnicos();
+    _loadUserDetails().then((_) => fetchTecnicos());
+  }
+
+  Future<void> _loadUserDetails() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isAdmin = prefs.getBool('isAdmin') ?? false;
+      userId = prefs.getInt('userId') ?? 0;
+    });
   }
 
   Future<void> fetchTecnicos() async {
     final url = Uri.parse('http://localhost/databases/get-tecnicos.php');
     try {
-      final response = await http.get(url);
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json; charset=utf-8'},
+        body: json.encode({'userId': userId, 'isAdmin': isAdmin}),
+      );
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
@@ -131,18 +146,21 @@ class _TecnicosListScreenState extends State<TecnicosListScreen> {
                                 fontSize: 14,
                               ),
                             ),
-                            trailing: IconButton(
-                              icon: Icon(Icons.edit),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        EditTecnicoScreen(tecnico: tecnico),
-                                  ),
-                                );
-                              },
-                            ),
+                            trailing: isAdmin
+                                ? IconButton(
+                                    icon: Icon(Icons.edit),
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              EditTecnicoScreen(
+                                                  tecnico: tecnico),
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : null,
                             onTap: () {
                               Navigator.push(
                                 context,
@@ -158,15 +176,17 @@ class _TecnicosListScreenState extends State<TecnicosListScreen> {
                     ),
                   ),
       ),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => Register()),
-          );
-        },
-      ),
+      floatingActionButton: isAdmin
+          ? FloatingActionButton(
+              child: Icon(Icons.add),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => Register()),
+                );
+              },
+            )
+          : null,
     );
   }
 

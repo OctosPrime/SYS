@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sys/screens/pag_inicial.dart';
 import 'package:sys/utils/extensions.dart';
 
@@ -26,8 +27,8 @@ class _LoginState extends State<Login> {
   }
 
   Future<bool> verificarCredenciais(String email, String senha) async {
-    final url = Uri.parse(
-        'http://localhost/databases/verificar-credenciais.php'); // 10.0.2.2:3000 para teste Android
+    final url =
+        Uri.parse('http://localhost/databases/verificar-credenciais.php');
     final response = await http.post(
       url,
       headers: {
@@ -37,10 +38,18 @@ class _LoginState extends State<Login> {
     );
 
     if (response.statusCode == 200) {
-      print(
-          'Response body: ${response.body}'); // Adicione esta linha para depurar
       final responseBody = json.decode(response.body);
-      return responseBody['success'] == true;
+      if (responseBody['success'] == true) {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isAdmin', responseBody['adm'] == 1);
+        await prefs.setInt('userId',
+            responseBody['userId']); // Certifique-se que userId é retornado
+        return true;
+      } else {
+        print(
+            "Login falhou: ${responseBody['error'] ?? 'Credenciais inválidas'}");
+        return false;
+      }
     } else {
       throw Exception('Erro ao verificar credenciais');
     }
@@ -107,7 +116,7 @@ class _LoginState extends State<Login> {
                 SizedBox(height: 50),
                 Form(
                   key: _formKey,
-                  child: Container(
+                  child: SizedBox(
                     width: formWidth > 400 ? 400 : formWidth,
                     child: Column(
                       children: [

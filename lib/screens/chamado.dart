@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sys/utils/extensions.dart';
 import 'package:sys/widgets/custom_form_field.dart';
 
 class Chamado extends StatefulWidget {
-  const Chamado({super.key, required Future<List<String>> futurosTecnicos});
+  final Future<List<String>> futurosTecnicos;
+  final int usuarioId; // Adicionado para receber o ID do usuário
+
+  const Chamado(
+      {super.key, required this.futurosTecnicos, required this.usuarioId});
 
   @override
   State<Chamado> createState() => _ChamadoState();
@@ -27,8 +32,9 @@ class _ChamadoState extends State<Chamado> {
       observacao,
       tecnico,
       status;
+  late int usuarioId;
 
-  List<String> tecnicosDisponiveis = [];
+  List<Map<String, dynamic>> tecnicosDisponiveis = [];
   bool isLoadingTecnicos = true;
 
   @override
@@ -37,18 +43,32 @@ class _ChamadoState extends State<Chamado> {
     fetchTecnicos();
   }
 
-  String? tecnicoId;
   Future<void> fetchTecnicos() async {
-    final url = Uri.parse(
-        'http://localhost/databases/get-tecnicos.php'); // Substitua pelo seu endpoint
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    int? userId = prefs.getInt('userId');
+    bool isAdmin = prefs.getBool('isAdmin') ?? false;
+
+    final url = Uri.parse('http://localhost/databases/get-tecnicos.php');
+
     try {
-      final response = await http.get(url);
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json; charset=utf-8'},
+        body: json.encode({
+          'userId': userId,
+          'isAdmin': isAdmin,
+        }),
+      );
+
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
           tecnicosDisponiveis = data
-              .map((tecnico) => tecnico['nome'] as String)
-              .toList(); // Ajuste conforme o formato do seu JSON
+              .map((tecnico) => {
+                    'id': tecnico['id'], // Armazenando o ID
+                    'nome': tecnico['nome'], // Armazenando o nome
+                  })
+              .toList();
           isLoadingTecnicos = false;
         });
       } else {
@@ -56,7 +76,6 @@ class _ChamadoState extends State<Chamado> {
       }
     } catch (e) {
       print(e);
-      // Trate o erro, como exibir um SnackBar ou diálogo de erro
       setState(() {
         isLoadingTecnicos = false;
       });
@@ -74,13 +93,12 @@ class _ChamadoState extends State<Chamado> {
       String link,
       String observacao,
       String tecnico,
-      String status) async {
+      String status,
+      int usuarioId) async {
     final url = Uri.parse('http://localhost/databases/criar-chamado.php');
     final response = await http.post(
       url,
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-      },
+      headers: {'Content-Type': 'application/json; charset=utf-8'},
       body: json.encode({
         'tipo': tipo,
         'chamado': chamado,
@@ -92,15 +110,20 @@ class _ChamadoState extends State<Chamado> {
         'link': link,
         'observacao': observacao,
         'tecnico': tecnico,
-        'status': status
+        'status': status,
+        'usuario_id': usuarioId // Incluindo o ID do usuário
       }),
     );
 
     if (response.statusCode == 200) {
       final responseBody = json.decode(response.body);
-      return responseBody['success'];
+      if (responseBody['success'] != null && responseBody['success']) {
+        return true; // Chamado criado com sucesso
+      } else {
+        throw Exception('Falha ao criar chamado: ${responseBody['error']}');
+      }
     } else {
-      throw Exception('Erro ao criar chamado.');
+      throw Exception('Erro ao criar chamado: ${response.body}');
     }
   }
 
@@ -267,7 +290,9 @@ class _ChamadoState extends State<Chamado> {
                     ? CircularProgressIndicator() // Carregando técnicos
                     : CustomDropdownField(
                         hintText: 'Técnico/Engenheiro',
-                        items: tecnicosDisponiveis,
+                        items: tecnicosDisponiveis
+                            .map((tecnico) => tecnico['nome'] as String)
+                            .toList(),
                         validator: (val) {
                           if (val == null || val.isEmpty) {
                             return 'Por favor, selecione uma opção';
@@ -276,10 +301,14 @@ class _ChamadoState extends State<Chamado> {
                         },
                         onSaved: (val) {
                           setState(() {
-                            tecnico = val;
+                            tecnico = val; // Armazenando o nome do técnico
+                            usuarioId = tecnicosDisponiveis.firstWhere(
+                                    (tecnico) => tecnico['nome'] == val)[
+                                'id']; // Armazenando o ID do técnico
                           });
                         },
                       ),
+
                 CustomDropdownField(
                   hintText: 'Status',
                   items: ["Aberto", "Agendado", "Em Andamento", "Finalizado"],
@@ -314,24 +343,30 @@ class _ChamadoState extends State<Chamado> {
                         "$celular",
                         "$link",
                         "$observacao",
-                        "$tecnico",
+                        "$tecnico", // Agora é o nome do técnico
                         "$status",
+                        usuarioId, // Agora é o ID do técnico
                       ).then((success) {
                         if (success) {
                           Navigator.pop(context,
                               true); // Retorna true para atualizar a lista
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Erro ao criar chamado.'),
-                            ),
+                            SnackBar(content: Text('Erro ao criar chamado.')),
                           );
                         }
+                      }).catchError((error) {
+                        print(error);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content:
+                                  Text('Erro inesperado ao criar chamado.')),
+                        );
                       });
                     }
                   },
                   child: const Text('Criar'),
-                ),
+                )
               ],
             ),
           ),
