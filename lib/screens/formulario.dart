@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:sys/screens/exibir_tec.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});

@@ -116,7 +116,7 @@ class _LoginState extends State<Login> {
                 SizedBox(height: 50),
                 Form(
                   key: _formKey,
-                  child: SizedBox(
+                  child: Container(
                     width: formWidth > 400 ? 400 : formWidth,
                     child: Column(
                       children: [

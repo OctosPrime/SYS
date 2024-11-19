@@ -258,9 +258,9 @@ class _ChamadoDetailScreenState extends State<ChamadoDetailScreen> {
           ),
           SizedBox(height: 16),
           FloatingActionButton(
+            child: Text(_buttonText),
             backgroundColor: _buttonColor,
             onPressed: _buttonText == 'Indisponível' ? null : _onButtonPressed,
-            child: Text(_buttonText),
           ),
         ],
       ),

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:sys/screens/login.dart';
 import 'package:http/http.dart' as http;
 import 'package:sys/screens/pag_inicial.dart';
+import 'package:sys/utils/ssl.dart';
 
 //import 'package:sys/screens/login.dart';
 void main() async {

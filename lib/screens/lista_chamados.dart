@@ -317,6 +317,7 @@ class _ChamadosListScreenState extends State<ChamadosListScreen>
             );
           } else {
             return FloatingActionButton(
+              child: Icon(Icons.add),
               onPressed: usuarioId == null
                   ? null
                   : () async {
@@ -337,7 +338,6 @@ class _ChamadosListScreenState extends State<ChamadosListScreen>
                         });
                       }
                     },
-              child: Icon(Icons.add),
             );
           }
         },

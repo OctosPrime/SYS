@@ -74,11 +74,10 @@ class _ConclusaoChamadoDialogState extends State<ConclusaoChamadoDialog> {
                   firstDate: DateTime(2000),
                   lastDate: DateTime(2101),
                 );
-                if (pickedDate != null && pickedDate != _dataConclusao) {
+                if (pickedDate != null && pickedDate != _dataConclusao)
                   setState(() {
                     _dataConclusao = pickedDate;
                   });
-                }
               },
             ),
           ],
